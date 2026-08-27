@@ -195,7 +195,9 @@ binds {
     // Columns, windows and monitors.
     Mod+R { switch-preset-column-width; }
     Mod+F { maximize-column; }
-    Mod+Shift+F { fullscreen-window; }
+    // Maximize-to-edges keeps Kitty composited, so transparency remains visible.
+    Mod+Shift+F { maximize-window-to-edges; }
+    Mod+Ctrl+Shift+F { fullscreen-window; }
     Mod+C { center-column; }
     Mod+BracketLeft { consume-or-expel-window-left; }
     Mod+BracketRight { consume-or-expel-window-right; }
