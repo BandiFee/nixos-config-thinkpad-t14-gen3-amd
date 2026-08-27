@@ -133,9 +133,9 @@ capsule_padding = 10.0
 capsule_radius = 80
 capsule_thickness = 0.96
 panel_overlap = 12
-start = ["launcher", "workspaces", "active_window"]
+start = ["workspaces", "active_window"]
 center = ["clock"]
-end = ["media", "tray", "notifications", "clipboard", "network", "bluetooth", "volume", "brightness", "battery", "control-center", "session"]
+end = ["media", "tray", "battery", "network", "control-center"]
 
 [dock]
 enabled = false
