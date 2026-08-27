@@ -1,13 +1,9 @@
 "$schema" = "https://starship.rs/config-schema.json"
 
-# Starship's official Catppuccin Powerline preset (Mocha), with the NixOS-
-# relevant Nix shell, Pixi, and Docker context modules added to its environment
-# segment.
+# Starship's official Catppuccin Powerline preset (Mocha), trimmed for a
+# personal workstation and extended with Nix shell, Pixi, and Docker context.
 format = """
-[](red)\
-$os\
-$username\
-[](bg:peach fg:red)\
+[](peach)\
 $directory\
 [](bg:yellow fg:peach)\
 $git_branch\
@@ -28,46 +24,12 @@ $docker_context\
 $conda\
 $pixi\
 $nix_shell\
-[](fg:sapphire bg:lavender)\
-$time\
-[ ](fg:lavender)\
+[ ](fg:sapphire)\
 $cmd_duration\
 $line_break\
 $character"""
 
 palette = "catppuccin_mocha"
-
-[os]
-disabled = false
-style = "bg:red fg:crust"
-
-[os.symbols]
-Windows = ""
-Ubuntu = "󰕈"
-SUSE = ""
-Raspbian = "󰐿"
-Mint = "󰣭"
-Macos = "󰀵"
-Manjaro = ""
-Linux = "󰌽"
-Gentoo = "󰣨"
-Fedora = "󰣛"
-Alpine = ""
-Amazon = ""
-Android = ""
-AOSC = ""
-Arch = "󰣇"
-Artix = "󰣇"
-CentOS = ""
-Debian = "󰣚"
-Redhat = "󱄛"
-RedHatEnterprise = "󱄛"
-
-[username]
-show_always = true
-style_user = "bg:red fg:crust"
-style_root = "bg:red fg:crust"
-format = "[ $user]($style)"
 
 [directory]
 style = "bg:peach fg:crust"
@@ -163,12 +125,6 @@ symbol = " "
 style = "bg:sapphire"
 format = "[[ $symbol$state( $name) ](fg:crust bg:sapphire)]($style)"
 
-[time]
-disabled = false
-time_format = "%R"
-style = "bg:lavender"
-format = "[[  $time ](fg:crust bg:lavender)]($style)"
-
 [line_break]
 disabled = true
 
@@ -182,7 +138,8 @@ vimcmd_replace_symbol = "[❮](bold fg:lavender)"
 vimcmd_visual_symbol = "[❮](bold fg:yellow)"
 
 [cmd_duration]
-show_milliseconds = true
+min_time = 2000
+show_milliseconds = false
 format = " in $duration "
 style = "bg:lavender"
 disabled = false
