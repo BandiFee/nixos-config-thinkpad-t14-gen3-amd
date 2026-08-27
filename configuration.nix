@@ -81,6 +81,9 @@
   users.users.bandifee = {
     isNormalUser = true;
 
+    # Fish is the interactive login shell; Bash remains installed for scripts.
+    shell = pkgs.fish;
+
     extraGroups = [
       "wheel"
       "networkmanager"
@@ -135,8 +138,12 @@
 
   programs.niri.enable = true;
 
+  # Register Fish as a system shell and provide its system-wide completions.
+  programs.fish.enable = true;
+
   environment.sessionVariables = {
     NIXOS_OZONE_WL = "1";
+    TERMINAL = "ghostty";
   };
 
   # ============================================================
@@ -207,9 +214,6 @@
   # ============================================================
 
   environment.systemPackages = with pkgs; [
-    # Niri essentials
-    alacritty
-
     # X11 compatibility
     xwayland-satellite
 

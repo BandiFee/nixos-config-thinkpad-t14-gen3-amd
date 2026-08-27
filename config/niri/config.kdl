@@ -124,6 +124,12 @@ window-rule {
     default-window-height { fixed 800; }
 }
 
+// Ghostty uses a lightly translucent background over Niri's blur effect.
+window-rule {
+    match app-id="com.mitchellh.ghostty"
+    background-effect { blur true; xray false; }
+}
+
 // Picture-in-picture and small utility windows are more useful floating.
 window-rule {
     match title="^(Picture-in-Picture|Picture in picture)$"
@@ -139,7 +145,7 @@ debug {
 binds {
     // Shell and applications.
     Mod+Shift+Slash { show-hotkey-overlay; }
-    Mod+Return { spawn "alacritty"; }
+    Mod+Return { spawn "ghostty"; }
     Mod+E { spawn "nautilus" "--new-window"; }
     Mod+B { spawn "firefox"; }
     Mod+Space { spawn "noctalia" "msg" "panel-toggle" "launcher"; }
