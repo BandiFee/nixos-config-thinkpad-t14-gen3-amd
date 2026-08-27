@@ -44,6 +44,17 @@
 
   programs.nm-applet.enable = true;
 
+  # SSH Server
+  services.openssh = {
+    enable = true;
+    openFirewall = true;
+
+    settings = {
+      PermitRootLogin = "no";
+      PasswordAuthentication = true;
+    };
+  };
+
   # ============================================================
   # Time / Locale
   # ============================================================
