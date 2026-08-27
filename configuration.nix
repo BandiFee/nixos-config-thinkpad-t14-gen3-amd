@@ -68,6 +68,8 @@
     tunMode = true;
     group = "clash-verge";
   };
+  networking.firewall.checkReversePath = "loose";
+  networking.firewall.trustedInterfaces = [ "Mihomo" ];
 
   # ============================================================
   # Time / Locale
