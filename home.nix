@@ -27,29 +27,7 @@
   programs.starship = {
     enable = true;
     enableFishIntegration = true;
-
-    settings = {
-      add_newline = false;
-      command_timeout = 1000;
-
-      character = {
-        success_symbol = "[❯](bold #a6e3a1)";
-        error_symbol = "[❯](bold #f38ba8)";
-        vimcmd_symbol = "[❮](bold #a6e3a1)";
-      };
-
-      directory.style = "bold #89b4fa";
-
-      git_branch = {
-        symbol = " ";
-        style = "bold #cba6f7";
-      };
-
-      nix_shell = {
-        symbol = " ";
-        style = "bold #89dceb";
-      };
-    };
+    settings = builtins.fromTOML (builtins.readFile ./config/starship.toml);
   };
 
   programs.kitty = {
