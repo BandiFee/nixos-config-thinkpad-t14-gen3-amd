@@ -134,8 +134,8 @@ window-rule {
 window-rule {
     match app-id="^kitty$"
     open-floating true
-    default-column-width { proportion 0.42; }
-    default-window-height { proportion 0.45; }
+    default-column-width { proportion 0.55; }
+    default-window-height { proportion 0.60; }
     background-effect { blur true; }
 }
 
