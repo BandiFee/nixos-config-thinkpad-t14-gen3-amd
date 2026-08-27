@@ -133,7 +133,7 @@ capsule_padding = 10.0
 capsule_radius = 80
 capsule_thickness = 0.96
 panel_overlap = 12
-start = ["workspaces", "active_window"]
+start = ["workspaces"]
 center = ["clock"]
 end = ["media", "tray", "battery", "network", "control-center"]
 
