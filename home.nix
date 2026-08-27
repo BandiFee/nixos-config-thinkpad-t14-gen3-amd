@@ -115,5 +115,6 @@
     configFile."niri/config.kdl".source = ./config/niri/config.kdl;
     configFile."fastfetch/config.jsonc".source =
       ./config/fastfetch/config.jsonc;
+    configFile."fastfetch/logo.png".source = ./config/fastfetch/logo.png;
   };
 }
