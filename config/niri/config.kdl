@@ -49,12 +49,23 @@ layout {
     default-column-width { proportion 0.5; }
 
     focus-ring {
-        width 2
+        // The glass surfaces provide the visual separation; a bright ring
+        // would compete with the translucent window edges.
+        off
+        width 0
         active-color "#cba6f7"
         inactive-color "#45475a"
     }
 
     border { off; }
+
+    shadow {
+        on
+        softness 10
+        spread 4
+        offset x=0 y=0
+        color "#00000070"
+    }
 }
 
 overview {
@@ -91,11 +102,26 @@ layer-rule {
     }
 }
 
+// NyxNiri-style glass windows: keep the desktop visible through a lightly
+// tinted surface, with a little more transparency for unfocused windows.
+window-rule {
+    opacity 0.90
+    background-effect {
+        blur true
+        xray false
+    }
+}
+
+window-rule {
+    match is-focused=false
+    opacity 0.85
+}
+
 blur {
-    passes 2
-    offset 3.0
-    noise 0.02
-    saturation 1.1
+    passes 3
+    offset 2.3
+    noise 0.001
+    saturation 1.2
 }
 
 hotkey-overlay { skip-at-startup; }
@@ -130,15 +156,15 @@ window-rule {
     default-window-height { fixed 800; }
 }
 
-// Open Kitty as a compact, dark glass-like floating terminal.
+// Kitty participates in the normal tiling layout, so two terminals naturally
+// occupy the left and right halves of the screen. Its own 70% black tint is
+// kept intact while Niri supplies the shared background blur.
 window-rule {
     match app-id="^kitty$"
-    open-floating true
-    default-column-width { proportion 0.55; }
-    default-window-height { proportion 0.60; }
+    opacity 1.0
     background-effect {
         blur true
-        xray true
+        xray false
     }
 }
 
@@ -201,6 +227,11 @@ binds {
     Mod+C { center-column; }
     Mod+BracketLeft { consume-or-expel-window-left; }
     Mod+BracketRight { consume-or-expel-window-right; }
+    // Arrange apps quickly: tab a column, or fine-tune its width/height.
+    Mod+G { toggle-column-tabbed-display; }
+    Mod+Minus { set-column-width "-5%"; }
+    Mod+Equal { set-column-width "+5%"; }
+    Mod+Shift+Equal { reset-window-height; }
     Mod+Tab { focus-workspace-previous; }
     Mod+Shift+Space { toggle-window-floating; }
 

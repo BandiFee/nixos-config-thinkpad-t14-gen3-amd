@@ -25,9 +25,12 @@ direction = "down"
 alpha = 0.45
 
 [shell.panel]
-transparency_mode = "soft"
+# Glass mode makes the floating launcher and its search field translucent.
+transparency_mode = "glass"
 borders = true
 shadow = true
+list_item_background = false
+floating_layer = "overlay"
 launcher_placement = "floating"
 launcher_position = "center"
 clipboard_placement = "floating"
@@ -120,7 +123,14 @@ widget_spacing = 6
 shadow = false
 auto_hide = false
 reserve_space = true
-capsule = false
+capsule = true
+capsule_border = "outline"
+capsule_foreground = "secondary"
+capsule_opacity = 0.79
+capsule_padding = 10.0
+capsule_radius = 80
+capsule_thickness = 0.96
+panel_overlap = 12
 start = ["launcher", "workspaces", "active_window"]
 center = ["clock"]
 end = ["media", "tray", "notifications", "clipboard", "network", "bluetooth", "volume", "brightness", "battery", "control-center", "session"]
