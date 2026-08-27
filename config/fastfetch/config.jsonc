@@ -3,12 +3,12 @@
   "logo": {
     "type": "kitty-direct",
     "source": "~/.config/fastfetch/logo.png",
-    "width": 30,
+    "width": 20,
     "height": 24,
     "padding": {
-      "top": 1,
+      "top": 0,
       "left": 1,
-      "right": 3
+      "right": 2
     }
   },
   "display": {
