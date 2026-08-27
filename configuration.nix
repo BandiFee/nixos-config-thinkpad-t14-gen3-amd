@@ -56,6 +56,20 @@
   };
 
   # ============================================================
+  # Proxy
+  # ============================================================
+
+  users.groups."clash-verge" = { };
+
+  programs.clash-verge = {
+    enable = true;
+    autoStart = false;
+    serviceMode = true;
+    tunMode = true;
+    group = "clash-verge";
+  };
+
+  # ============================================================
   # Time / Locale
   # ============================================================
 
@@ -75,6 +89,7 @@
     extraGroups = [
       "wheel"
       "networkmanager"
+      "clash-verge"
     ];
   };
 
