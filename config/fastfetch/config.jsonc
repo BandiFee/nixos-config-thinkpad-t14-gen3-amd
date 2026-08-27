@@ -22,6 +22,21 @@
   },
   "modules": [
     {
+      "type": "os",
+      "key": "OS",
+      "keyIcon": ""
+    },
+    {
+      "type": "host",
+      "key": "Host",
+      "keyIcon": "󰌢"
+    },
+    {
+      "type": "kernel",
+      "key": "Kernel",
+      "keyIcon": ""
+    },
+    {
       "type": "uptime",
       "key": "Uptime",
       "keyIcon": "󰅐"
