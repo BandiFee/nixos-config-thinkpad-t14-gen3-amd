@@ -56,8 +56,9 @@ edge_smoothness = 0.3
 
 [theme]
 mode = "dark"
-source = "builtin"
+source = "wallpaper"
 builtin = "Catppuccin"
+wallpaper_scheme = "m3-content"
 
 [theme.templates]
 enable_builtin_templates = true
@@ -124,9 +125,10 @@ shadow = false
 auto_hide = false
 reserve_space = true
 capsule = true
+capsule_fill = "surface_variant"
 capsule_border = "outline"
 capsule_foreground = "secondary"
-capsule_opacity = 0.79
+capsule_opacity = 0.62
 capsule_padding = 10.0
 capsule_radius = 80
 capsule_thickness = 0.96
