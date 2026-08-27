@@ -57,7 +57,10 @@
       font-size = 12;
       theme = "catppuccin-mocha";
 
-      background-opacity = 0.96;
+      # Fully transparent, including cells painted by terminal applications.
+      background-opacity = 0.0;
+      background-opacity-cells = true;
+      background-blur = false;
       window-padding-x = 12;
       window-padding-y = 10;
       window-padding-balance = true;

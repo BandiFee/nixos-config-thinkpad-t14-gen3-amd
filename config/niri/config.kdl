@@ -77,6 +77,12 @@ layer-rule {
     }
 }
 
+// The bar itself stays completely clear even when Noctalia requests blur.
+layer-rule {
+    match namespace="^noctalia-bar-.*$"
+    background-effect { blur false; }
+}
+
 layer-rule {
     match namespace="noctalia-window-switcher"
     background-effect {
@@ -124,10 +130,11 @@ window-rule {
     default-window-height { fixed 800; }
 }
 
-// Ghostty uses a lightly translucent background over Niri's blur effect.
+// Keep Ghostty transparent without adding a compositor blur or tint.
 window-rule {
     match app-id="com.mitchellh.ghostty"
-    background-effect { blur true; xray false; }
+    default-column-width { proportion 0.66667; }
+    background-effect { blur false; }
 }
 
 // Picture-in-picture and small utility windows are more useful floating.
