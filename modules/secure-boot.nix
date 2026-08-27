@@ -15,11 +15,5 @@
     pkiBundle = "/var/lib/sbctl";
   };
 
-  # A systemd-based initrd is required for TPM2-backed LUKS unlocking.
-  boot.initrd.systemd = {
-    enable = true;
-    tpm2.enable = true;
-  };
-
   environment.systemPackages = [ pkgs.sbctl ];
 }

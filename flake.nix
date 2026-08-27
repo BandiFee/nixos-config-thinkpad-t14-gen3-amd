@@ -23,13 +23,17 @@
       ...
     }:
     {
-      # Importing this profile is all a host needs to enable Lanzaboote-based
-      # Secure Boot with TPM2 support.
+      # Lanzaboote-based Secure Boot and its signing tooling.
       nixosModules.secure-boot = {
         imports = [
           inputs.lanzaboote.nixosModules.lanzaboote
           ./modules/secure-boot.nix
         ];
+      };
+
+      # TPM2-backed automatic unlocking for the cryptroot LUKS mapping.
+      nixosModules.tpm-unlock = {
+        imports = [ ./modules/tpm-unlock.nix ];
       };
 
       nixosConfigurations.thinkpad-t14 = nixpkgs.lib.nixosSystem {
@@ -39,6 +43,7 @@
           ./configuration.nix
           nixos-hardware.nixosModules.lenovo-thinkpad-t14-amd-gen3
           self.nixosModules.secure-boot
+          self.nixosModules.tpm-unlock
         ];
       };
     };
