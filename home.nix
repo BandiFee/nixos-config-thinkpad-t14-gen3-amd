@@ -1,4 +1,4 @@
-{ inputs, ... }:
+{ inputs, pkgs, ... }:
 
 {
   imports = [
@@ -9,6 +9,10 @@
     username = "bandifee";
     homeDirectory = "/home/bandifee";
     stateVersion = "26.05";
+
+    packages = [
+      pkgs.fastfetch
+    ];
   };
 
   programs.home-manager.enable = true;
@@ -122,5 +126,7 @@
     };
 
     configFile."niri/config.kdl".source = ./config/niri/config.kdl;
+    configFile."fastfetch/config.jsonc".source =
+      ./config/fastfetch/config.jsonc;
   };
 }

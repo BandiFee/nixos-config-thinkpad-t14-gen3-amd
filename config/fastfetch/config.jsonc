@@ -1,0 +1,85 @@
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+  "logo": {
+    "type": "small",
+    "source": "nixos",
+    "padding": {
+      "top": 1,
+      "left": 1,
+      "right": 3
+    }
+  },
+  "display": {
+    "separator": "  ",
+    "color": {
+      "keys": "light_cyan",
+      "output": "white"
+    },
+    "key": {
+      "width": 14,
+      "type": "both"
+    }
+  },
+  "modules": [
+    {
+      "type": "uptime",
+      "key": "Uptime",
+      "keyIcon": "󰅐"
+    },
+    {
+      "type": "packages",
+      "key": "Packages",
+      "keyIcon": "󰏖"
+    },
+    "break",
+    {
+      "type": "cpu",
+      "key": "CPU",
+      "keyIcon": "󰻠"
+    },
+    {
+      "type": "gpu",
+      "key": "GPU",
+      "keyIcon": "󰢮"
+    },
+    {
+      "type": "memory",
+      "key": "Memory",
+      "keyIcon": "󰍛"
+    },
+    {
+      "type": "disk",
+      "key": "Disk (/)",
+      "keyIcon": "󰋊",
+      "folders": "/"
+    },
+    "break",
+    {
+      "type": "wm",
+      "key": "WM",
+      "keyIcon": "󰖯"
+    },
+    {
+      "type": "shell",
+      "key": "Shell",
+      "keyIcon": "󰆍"
+    },
+    {
+      "type": "terminal",
+      "key": "Terminal",
+      "keyIcon": ""
+    },
+    {
+      "type": "localip",
+      "key": "Local IP",
+      "keyIcon": "󰩟"
+    },
+    "break",
+    {
+      "type": "colors",
+      "key": "Colors",
+      "keyIcon": "󰏘",
+      "symbol": "circle"
+    }
+  ]
+}
