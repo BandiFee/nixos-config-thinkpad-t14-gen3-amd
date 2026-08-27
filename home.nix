@@ -57,6 +57,10 @@
       background = "#000000";
       foreground = "#cdd6f4";
       cursor = "#f5e0dc";
+      # Animate jumps of the text cursor so movement stays easy to follow.
+      cursor_trail = 3;
+      cursor_trail_decay = "0.1 0.4";
+      cursor_trail_start_threshold = 2;
       selection_background = "#45475a";
       selection_foreground = "#cdd6f4";
       active_border_color = "#cba6f7";
