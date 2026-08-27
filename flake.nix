@@ -3,8 +3,14 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+
     nixos-hardware = {
     url = "github:NixOS/nixos-hardware";
+    inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    lanzaboote = {
+    url = "github:nix-community/lanzaboote/v1.1.0";
     inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -13,6 +19,7 @@
     {
       nixpkgs,
       nixos-hardware,
+      lanzaboote,
       ...
     }:
     {
@@ -22,6 +29,7 @@
         modules = [
           ./configuration.nix
           nixos-hardware.nixosModules.lenovo-thinkpad-t14-amd-gen3
+          lanzaboote.nixosModules.lanzaboote
         ];
       };
     };

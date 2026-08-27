@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   imports = [
@@ -10,11 +10,19 @@
   # ============================================================
 
   boot.loader.systemd-boot = {
-    enable = true;
+    enable = lib.mkForce false;
     configurationLimit = 10;
   };
 
   boot.loader.efi.canTouchEfiVariables = true;
+
+  boot.lanzaboote = {
+    enable = true;
+    pkiBundle = "/var/lib/sbctl";
+  };
+
+  boot.initrd.systemd.enable = true;
+  boot.initrd.systemd.tpm2.enable = true;
 
   # ============================================================
   # Nix
@@ -264,6 +272,7 @@
     vim
     wget
     curl
+    sbctl
 
     fastfetch
     btop
