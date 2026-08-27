@@ -236,6 +236,7 @@
     curl
     fastfetch
     btop
+    codex
 
     pciutils
     usbutils
