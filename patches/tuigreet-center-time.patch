@@ -1,0 +1,69 @@
+diff --git a/crates/tuigreet-config/src/schema.rs b/crates/tuigreet-config/src/schema.rs
+--- a/crates/tuigreet-config/src/schema.rs
++++ b/crates/tuigreet-config/src/schema.rs
+@@ -610,5 +610,6 @@ pub enum WidgetPosition {
+   #[default]
+   Default,
++  Center,
+   Top,
+   Bottom,
+   Hidden,
+diff --git a/crates/tuigreet/src/ui/mod.rs b/crates/tuigreet/src/ui/mod.rs
+--- a/crates/tuigreet/src/ui/mod.rs
++++ b/crates/tuigreet/src/ui/mod.rs
+@@ -26,13 +26,13 @@ use tui::{
+   Frame as CrosstermFrame,
+   Terminal,
+-  layout::{Alignment, Constraint, Direction, Layout},
++  layout::{Alignment, Constraint, Direction, Layout, Rect},
+   style::Modifier,
+   text::{Line, Span},
+   widgets::Paragraph,
+ };
+ use tuigreet_config::{BatteryPosition, WidgetPosition};
+ use tuigreet_types::Mode;
+-use util::buttonize;
++use util::{buttonize, get_rect_bounds};
+ 
+ use self::common::style::{Theme, Themed};
+ pub use self::i18n::MESSAGES;
+@@ -95,10 +95,14 @@ where
+     let time_at_top = greeter.time
+       && !matches!(
+         time_position,
+-        WidgetPosition::Hidden | WidgetPosition::Bottom
++        WidgetPosition::Hidden
++          | WidgetPosition::Bottom
++          | WidgetPosition::Center
+       );
+     let time_at_bottom =
+       greeter.time && matches!(time_position, WidgetPosition::Bottom);
++    let time_at_center =
++      greeter.time && matches!(time_position, WidgetPosition::Center);
+ 
+     // Dynamic layout
+     let mut constraints = vec![];
+@@ -304,6 +308,23 @@ where
+     // Get the main content area and create a sub-frame for content drawing
+     let main_area = chunks[main_slot];
+ 
++    // Render time immediately above the vertically centered content.
++    if time_at_center {
++      let (_, content_y, _, _) = get_rect_bounds(&greeter, main_area, 0);
++      let time_area = Rect::new(
++        main_area.x,
++        content_y.saturating_sub(2),
++        main_area.width,
++        1,
++      );
++      f.render_widget(
++        Paragraph::new(Span::from(get_time(&greeter)))
++          .alignment(Alignment::Center)
++          .style(theme.of(&[Themed::Time])),
++        time_area,
++      );
++    }
++
+     let cursor = match greeter.mode {
+       Mode::Command => {
+         self::command::draw_with_area(&mut greeter, f, main_area).ok()

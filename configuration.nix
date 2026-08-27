@@ -29,6 +29,17 @@
 
   nixpkgs.config.allowUnfree = true;
 
+  # Keep the clock next to the centered login form instead of at the TTY edge.
+  nixpkgs.overlays = [
+    (_final: prev: {
+      tuigreet = prev.tuigreet.overrideAttrs (old: {
+        patches = (old.patches or [ ]) ++ [
+          ./patches/tuigreet-center-time.patch
+        ];
+      });
+    })
+  ];
+
   # ============================================================
   # Network
   # ============================================================
@@ -166,13 +177,13 @@
     align_greeting = "center"
 
     [layout]
-    width = 48
+    width = 64
     window_padding = 1
     container_padding = 1
     prompt_padding = 1
 
     [layout.widgets]
-    time_position = "top"
+    time_position = "center"
     status_position = "hidden"
 
     [remember]
