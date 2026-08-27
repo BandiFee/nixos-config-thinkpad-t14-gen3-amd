@@ -1,28 +1,9 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, ... }:
 
 {
   imports = [
     ./hardware-configuration.nix
   ];
-
-  # ============================================================
-  # Boot
-  # ============================================================
-
-  boot.loader.systemd-boot = {
-    enable = lib.mkForce false;
-    configurationLimit = 10;
-  };
-
-  boot.loader.efi.canTouchEfiVariables = true;
-
-  boot.lanzaboote = {
-    enable = true;
-    pkiBundle = "/var/lib/sbctl";
-  };
-
-  boot.initrd.systemd.enable = true;
-  boot.initrd.systemd.tpm2.enable = true;
 
   # ============================================================
   # Nix
@@ -272,8 +253,6 @@
     vim
     wget
     curl
-    sbctl
-
     fastfetch
     btop
 
