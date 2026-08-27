@@ -72,7 +72,9 @@
     {
       "type": "localip",
       "key": "Local IP",
-      "keyIcon": "󰩟"
+      "keyIcon": "󰩟",
+      "defaultRouteOnly": false,
+      "namePrefix": "wlp2s0"
     },
     "break",
     {
