@@ -88,7 +88,7 @@ offset_y = 16
 
 [lockscreen]
 enabled = true
-fingerprint = false
+fingerprint = true
 blurred_desktop = false
 blur_intensity = 0.4
 tint_intensity = 0.35
