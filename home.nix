@@ -48,54 +48,59 @@
     };
   };
 
-  programs.ghostty = {
+  programs.kitty = {
     enable = true;
-    enableFishIntegration = true;
 
-    settings = {
-      font-family = "JetBrainsMono Nerd Font";
-      font-size = 12;
-      theme = "catppuccin-mocha";
-
-      # Fully transparent, including cells painted by terminal applications.
-      background-opacity = 0.0;
-      background-opacity-cells = true;
-      background-blur = false;
-      window-padding-x = 12;
-      window-padding-y = 10;
-      window-padding-balance = true;
-      window-padding-color = "extend";
-
-      cursor-style = "block";
-      cursor-style-blink = false;
-      shell-integration = "fish";
-      confirm-close-surface = false;
+    font = {
+      name = "JetBrainsMono Nerd Font";
+      size = 12;
     };
 
-    themes.catppuccin-mocha = {
-      background = "1e1e2e";
-      foreground = "cdd6f4";
-      cursor-color = "f5e0dc";
-      selection-background = "45475a";
-      selection-foreground = "cdd6f4";
-      palette = [
-        "0=#45475a"
-        "1=#f38ba8"
-        "2=#a6e3a1"
-        "3=#f9e2af"
-        "4=#89b4fa"
-        "5=#f5c2e7"
-        "6=#94e2d5"
-        "7=#bac2de"
-        "8=#585b70"
-        "9=#f38ba8"
-        "10=#a6e3a1"
-        "11=#f9e2af"
-        "12=#89b4fa"
-        "13=#f5c2e7"
-        "14=#94e2d5"
-        "15=#a6adc8"
-      ];
+    shellIntegration.enableFishIntegration = true;
+
+    settings = {
+      # A dark glass-like surface: black tint with the wallpaper showing through.
+      background_opacity = 0.70;
+      background_blur = 0;
+      window_padding_width = 10;
+      confirm_os_window_close = 0;
+      enable_audio_bell = false;
+      enabled_layouts = "splits:split_axis=auto;equalize_on_close=true,stack";
+
+      background = "#000000";
+      foreground = "#cdd6f4";
+      cursor = "#f5e0dc";
+      selection_background = "#45475a";
+      selection_foreground = "#cdd6f4";
+      active_border_color = "#cba6f7";
+      inactive_border_color = "#45475a";
+
+      color0 = "#45475a";
+      color1 = "#f38ba8";
+      color2 = "#a6e3a1";
+      color3 = "#f9e2af";
+      color4 = "#89b4fa";
+      color5 = "#f5c2e7";
+      color6 = "#94e2d5";
+      color7 = "#bac2de";
+      color8 = "#585b70";
+      color9 = "#f38ba8";
+      color10 = "#a6e3a1";
+      color11 = "#f9e2af";
+      color12 = "#89b4fa";
+      color13 = "#f5c2e7";
+      color14 = "#94e2d5";
+      color15 = "#a6adc8";
+    };
+
+    keybindings = {
+      "ctrl+shift+o" = "launch --cwd=current --location=vsplit";
+      "ctrl+shift+e" = "launch --cwd=current --location=hsplit";
+      "ctrl+alt+left" = "neighboring_window left";
+      "ctrl+alt+down" = "neighboring_window down";
+      "ctrl+alt+up" = "neighboring_window up";
+      "ctrl+alt+right" = "neighboring_window right";
+      "ctrl+shift+enter" = "toggle_layout stack";
     };
   };
 
@@ -113,7 +118,7 @@
     mimeApps = {
       enable = true;
       defaultApplications."x-scheme-handler/terminal" =
-        [ "com.mitchellh.ghostty.desktop" ];
+        [ "kitty.desktop" ];
     };
 
     configFile."niri/config.kdl".source = ./config/niri/config.kdl;

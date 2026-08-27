@@ -143,7 +143,7 @@
 
   environment.sessionVariables = {
     NIXOS_OZONE_WL = "1";
-    TERMINAL = "ghostty";
+    TERMINAL = "kitty";
   };
 
   # ============================================================

@@ -130,11 +130,13 @@ window-rule {
     default-window-height { fixed 800; }
 }
 
-// Keep Ghostty transparent without adding a compositor blur or tint.
+// Open Kitty as a compact, dark glass-like floating terminal.
 window-rule {
-    match app-id="com.mitchellh.ghostty"
-    default-column-width { proportion 0.66667; }
-    background-effect { blur false; }
+    match app-id="^kitty$"
+    open-floating true
+    default-column-width { proportion 0.42; }
+    default-window-height { proportion 0.45; }
+    background-effect { blur true; }
 }
 
 // Picture-in-picture and small utility windows are more useful floating.
@@ -152,7 +154,7 @@ debug {
 binds {
     // Shell and applications.
     Mod+Shift+Slash { show-hotkey-overlay; }
-    Mod+Return { spawn "ghostty"; }
+    Mod+Return { spawn "kitty"; }
     Mod+E { spawn "nautilus" "--new-window"; }
     Mod+B { spawn "firefox"; }
     Mod+Space { spawn "noctalia" "msg" "panel-toggle" "launcher"; }
