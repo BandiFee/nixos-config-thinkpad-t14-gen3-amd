@@ -14,6 +14,12 @@
     "flakes"
   ];
 
+  # Pre-built Noctalia v5 binaries (the flake tracks its cached branch).
+  nix.settings.extra-substituters = [ "https://noctalia.cachix.org" ];
+  nix.settings.extra-trusted-public-keys = [
+    "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
+  ];
+
   # clean unused generation / store paths
   nix.gc = {
     automatic = true;
@@ -30,8 +36,6 @@
   networking.hostName = "thinkpad-t14";
 
   networking.networkmanager.enable = true;
-
-  programs.nm-applet.enable = true;
 
   # SSH Server
   services.openssh = {
@@ -105,6 +109,9 @@
 
   services.blueman.enable = true;
 
+  # Battery state is consumed directly by Noctalia.
+  services.upower.enable = true;
+
   # ============================================================
   # Audio
   # ============================================================
@@ -156,8 +163,6 @@
 
   security.polkit.enable = true;
 
-  security.pam.services.swaylock = { };
-
   programs.dconf.enable = true;
 
   # gvfs also enables udisks2
@@ -189,29 +194,6 @@
     };
   };
 
-  # Notifications
-  systemd.user.services.mako = {
-    description = "Mako notification daemon";
-
-    wantedBy = [
-      "graphical-session.target"
-    ];
-
-    partOf = [
-      "graphical-session.target"
-    ];
-
-    after = [
-      "graphical-session.target"
-    ];
-
-    serviceConfig = {
-      Type = "simple";
-      ExecStart = "${pkgs.mako}/bin/mako";
-      Restart = "on-failure";
-    };
-  };
-
   # ============================================================
   # Steam / Gaming
   # ============================================================
@@ -227,11 +209,6 @@
   environment.systemPackages = with pkgs; [
     # Niri essentials
     alacritty
-    fuzzel
-    waybar
-    swaylock
-    swayidle
-    swaybg
 
     # X11 compatibility
     xwayland-satellite

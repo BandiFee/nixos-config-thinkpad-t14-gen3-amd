@@ -1,0 +1,163 @@
+# Noctalia v5 configuration for the ThinkPad T14.
+# Runtime changes made in Settings are stored as user overrides.
+
+[accessibility]
+ui_scale = 1.0
+
+[shell]
+font_family = "JetBrainsMono Nerd Font"
+time_format = "{:%H:%M}"
+date_format = "%A, %Y-%m-%d"
+telemetry_enabled = false
+settings_show_advanced = true
+clipboard_enabled = true
+clipboard_history_max_entries = 200
+clipboard_keep_from_closed_apps = false
+niri_overview_type_to_launch_enabled = false
+polkit_agent = false
+
+[shell.animation]
+enabled = true
+speed = 1.2
+
+[shell.shadow]
+direction = "down"
+alpha = 0.45
+
+[shell.panel]
+transparency_mode = "soft"
+borders = true
+shadow = true
+launcher_placement = "floating"
+launcher_position = "center"
+clipboard_placement = "floating"
+clipboard_position = "center"
+control_center_placement = "attached"
+wallpaper_placement = "attached"
+session_placement = "attached"
+
+[shell.launcher]
+categories = true
+show_icons = true
+compact = false
+app_grid = false
+sort_by_usage = true
+provider_prefix = "/"
+
+[wallpaper]
+enabled = true
+fill_mode = "crop"
+transition = ["fade", "wipe", "zoom"]
+transition_duration = 900
+edge_smoothness = 0.3
+
+[theme]
+mode = "dark"
+source = "builtin"
+builtin = "Catppuccin"
+
+[theme.templates]
+enable_builtin_templates = true
+enable_community_templates = false
+
+# A stationary wallpaper is cheaper and calmer than a second blurred backdrop.
+[backdrop]
+enabled = false
+
+[notification]
+enable_daemon = true
+show_app_name = true
+show_actions = true
+layer = "top"
+background_opacity = 0.96
+offset_x = 12
+offset_y = 8
+
+[osd]
+enabled = true
+position = "bottom_center"
+position_vertical = "bottom_center"
+orientation = "horizontal"
+background_opacity = 0.94
+offset_x = 16
+offset_y = 16
+
+[lockscreen]
+enabled = true
+fingerprint = false
+blurred_desktop = false
+blur_intensity = 0.4
+tint_intensity = 0.35
+lock_before_suspend = true
+
+[audio]
+enable_overdrive = false
+enable_sounds = false
+
+[brightness]
+enable_ddcutil = false
+minimum_brightness = 0.05
+
+[idle.behavior.lock]
+timeout = 600
+action = "lock"
+enabled = true
+
+[idle.behavior.screen-off]
+timeout = 660
+action = "screen_off"
+enabled = true
+
+[bar.main]
+position = "top"
+thickness = 36
+background_opacity = 0.92
+radius = 12
+margin_ends = 12
+margin_edge = 8
+padding = 12
+widget_spacing = 6
+shadow = true
+auto_hide = false
+reserve_space = true
+capsule = false
+start = ["launcher", "workspaces", "active_window"]
+center = ["clock"]
+end = ["media", "tray", "notifications", "clipboard", "network", "bluetooth", "volume", "brightness", "battery", "control-center", "session"]
+
+[dock]
+enabled = false
+
+[desktop_widgets]
+enabled = false
+
+[[control_center.shortcuts]]
+type = "wifi"
+
+[[control_center.shortcuts]]
+type = "bluetooth"
+
+[[control_center.shortcuts]]
+type = "nightlight"
+
+[[control_center.shortcuts]]
+type = "notification"
+
+[[control_center.shortcuts]]
+type = "wallpaper"
+
+[[control_center.shortcuts]]
+type = "session"
+
+[widget.clock]
+format = "{:%H:%M}"
+tooltip_format = "{:%A, %Y-%m-%d}"
+font_weight = 700
+
+[widget.network]
+vpn_status = "both"
+show_label = false
+show_vpn_label = false
+
+[widget.notifications]
+hide_when_no_unread = false

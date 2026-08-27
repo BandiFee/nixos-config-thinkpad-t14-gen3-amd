@@ -1,0 +1,235 @@
+// Niri + Noctalia v5 configuration for the ThinkPad T14 Gen 3 AMD.
+
+input {
+    keyboard {
+        xkb {
+            layout "us"
+        }
+        repeat-delay 250
+        repeat-rate 35
+    }
+
+    touchpad {
+        tap
+        dwt
+        natural-scroll
+        click-method "clickfinger"
+        accel-speed 0.2
+    }
+
+    mouse {
+        accel-profile "adaptive"
+    }
+
+    trackpoint {
+        accel-speed 0.2
+        scroll-method "on-button-down"
+        scroll-button 274
+    }
+
+    focus-follows-mouse max-scroll-amount="10%"
+    warp-mouse-to-focus
+}
+
+// Let Niri choose the internal panel's preferred mode automatically.
+// Add an output "eDP-1" block here later if fractional scaling is needed.
+
+layout {
+    gaps 12
+    center-focused-column "never"
+    always-center-single-column
+    background-color "transparent"
+
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+    }
+
+    default-column-width { proportion 0.5; }
+
+    focus-ring {
+        width 2
+        active-color "#cba6f7"
+        inactive-color "#45475a"
+    }
+
+    border { off; }
+}
+
+overview {
+    backdrop-color "#1e1e2e"
+    workspace-shadow { off; }
+}
+
+// Keep the wallpaper stationary while moving through Niri's columns.
+layer-rule {
+    match namespace="^noctalia-wallpaper"
+    place-within-backdrop true
+}
+
+// Noctalia advertises its own blur regions. Sample the real content behind
+// translucent surfaces instead of looking through directly to the wallpaper.
+layer-rule {
+    match namespace="^noctalia-(bar-[^\"]+|notification|dock|panel|attached-panel|osd)$"
+    background-effect {
+        xray false
+    }
+}
+
+layer-rule {
+    match namespace="noctalia-window-switcher"
+    background-effect {
+        blur true
+        xray false
+    }
+}
+
+blur {
+    passes 2
+    offset 3.0
+    noise 0.02
+    saturation 1.1
+}
+
+hotkey-overlay { skip-at-startup; }
+prefer-no-csd
+screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
+
+cursor {
+    xcursor-theme "Adwaita"
+    xcursor-size 24
+}
+
+animations {
+    slowdown 1.0
+}
+
+// Start the desktop shell with the compositor so its Wayland environment is
+// always correct. The --daemon form returns after initialization.
+spawn-at-startup "noctalia" "--daemon"
+
+// Niri is Wayland-only; this bridge keeps Steam and legacy X11 apps working.
+spawn-at-startup "xwayland-satellite"
+
+window-rule {
+    geometry-corner-radius 12
+    clip-to-geometry true
+}
+
+window-rule {
+    match app-id="dev.noctalia.Noctalia"
+    open-floating true
+    default-column-width { fixed 1000; }
+    default-window-height { fixed 800; }
+}
+
+// Picture-in-picture and small utility windows are more useful floating.
+window-rule {
+    match title="^(Picture-in-Picture|Picture in picture)$"
+    open-floating true
+    default-column-width { proportion 0.35; }
+}
+
+debug {
+    // Required for notification actions and app activation from Noctalia.
+    honor-xdg-activation-with-invalid-serial
+}
+
+binds {
+    // Shell and applications.
+    Mod+Shift+Slash { show-hotkey-overlay; }
+    Mod+Return { spawn "alacritty"; }
+    Mod+E { spawn "nautilus" "--new-window"; }
+    Mod+B { spawn "firefox"; }
+    Mod+Space { spawn "noctalia" "msg" "panel-toggle" "launcher"; }
+    Mod+S { spawn "noctalia" "msg" "panel-toggle" "control-center"; }
+    Mod+V { spawn "noctalia" "msg" "panel-toggle" "clipboard"; }
+    Mod+Comma { spawn "noctalia" "msg" "settings-toggle"; }
+    Mod+Ctrl+Q { spawn "noctalia" "msg" "session" "lock"; }
+    Alt+Tab { spawn "noctalia" "msg" "window-switcher"; }
+
+    // Session and overview.
+    Mod+O repeat=false { toggle-overview; }
+    Mod+Q repeat=false { close-window; }
+    Mod+Shift+E { spawn "noctalia" "msg" "panel-toggle" "session"; }
+    Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+
+    // Focus and movement use Vim keys or arrows.
+    Mod+H { focus-column-left; }
+    Mod+J { focus-window-down; }
+    Mod+K { focus-window-up; }
+    Mod+L { focus-column-right; }
+    Mod+Left { focus-column-left; }
+    Mod+Down { focus-window-down; }
+    Mod+Up { focus-window-up; }
+    Mod+Right { focus-column-right; }
+
+    Mod+Shift+H { move-column-left; }
+    Mod+Shift+J { move-window-down; }
+    Mod+Shift+K { move-window-up; }
+    Mod+Shift+L { move-column-right; }
+    Mod+Shift+Left { move-column-left; }
+    Mod+Shift+Down { move-window-down; }
+    Mod+Shift+Up { move-window-up; }
+    Mod+Shift+Right { move-column-right; }
+
+    // Columns, windows and monitors.
+    Mod+R { switch-preset-column-width; }
+    Mod+F { maximize-column; }
+    Mod+Shift+F { fullscreen-window; }
+    Mod+C { center-column; }
+    Mod+BracketLeft { consume-or-expel-window-left; }
+    Mod+BracketRight { consume-or-expel-window-right; }
+    Mod+Tab { focus-workspace-previous; }
+    Mod+Shift+Space { toggle-window-floating; }
+
+    Mod+Ctrl+H { focus-monitor-left; }
+    Mod+Ctrl+J { focus-monitor-down; }
+    Mod+Ctrl+K { focus-monitor-up; }
+    Mod+Ctrl+L { focus-monitor-right; }
+    Mod+Ctrl+Shift+H { move-column-to-monitor-left; }
+    Mod+Ctrl+Shift+J { move-column-to-monitor-down; }
+    Mod+Ctrl+Shift+K { move-column-to-monitor-up; }
+    Mod+Ctrl+Shift+L { move-column-to-monitor-right; }
+
+    // Workspaces.
+    Mod+1 { focus-workspace 1; }
+    Mod+2 { focus-workspace 2; }
+    Mod+3 { focus-workspace 3; }
+    Mod+4 { focus-workspace 4; }
+    Mod+5 { focus-workspace 5; }
+    Mod+6 { focus-workspace 6; }
+    Mod+7 { focus-workspace 7; }
+    Mod+8 { focus-workspace 8; }
+    Mod+9 { focus-workspace 9; }
+    Mod+Shift+1 { move-column-to-workspace 1; }
+    Mod+Shift+2 { move-column-to-workspace 2; }
+    Mod+Shift+3 { move-column-to-workspace 3; }
+    Mod+Shift+4 { move-column-to-workspace 4; }
+    Mod+Shift+5 { move-column-to-workspace 5; }
+    Mod+Shift+6 { move-column-to-workspace 6; }
+    Mod+Shift+7 { move-column-to-workspace 7; }
+    Mod+Shift+8 { move-column-to-workspace 8; }
+    Mod+Shift+9 { move-column-to-workspace 9; }
+    Mod+Page_Down { focus-workspace-down; }
+    Mod+Page_Up { focus-workspace-up; }
+    Mod+Ctrl+Page_Down { move-column-to-workspace-down; }
+    Mod+Ctrl+Page_Up { move-column-to-workspace-up; }
+
+    // Screenshots.
+    Print { screenshot; }
+    Ctrl+Print { screenshot-screen; }
+    Alt+Print { screenshot-window; }
+
+    // Laptop media keys go through Noctalia so its OSD stays in sync.
+    XF86AudioRaiseVolume allow-when-locked=true { spawn "noctalia" "msg" "volume-up"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn "noctalia" "msg" "volume-down"; }
+    XF86AudioMute allow-when-locked=true { spawn "noctalia" "msg" "volume-mute"; }
+    XF86AudioMicMute allow-when-locked=true { spawn "noctalia" "msg" "mic-mute"; }
+    XF86MonBrightnessUp allow-when-locked=true { spawn "noctalia" "msg" "brightness-up"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "noctalia" "msg" "brightness-down"; }
+    XF86AudioPlay allow-when-locked=true { spawn "playerctl" "play-pause"; }
+    XF86AudioNext allow-when-locked=true { spawn "playerctl" "next"; }
+    XF86AudioPrev allow-when-locked=true { spawn "playerctl" "previous"; }
+}
