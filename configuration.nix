@@ -102,6 +102,14 @@
   zramSwap.enable = true;
 
   # ============================================================
+  # Fingerprint reader
+  # ============================================================
+
+  # Also enables fingerprint authentication for PAM services such as
+  # greetd, sudo and polkit while retaining password authentication.
+  services.fprintd.enable = true;
+
+  # ============================================================
   # Bluetooth
   # ============================================================
 
