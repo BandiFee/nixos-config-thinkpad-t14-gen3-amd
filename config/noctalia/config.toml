@@ -162,7 +162,7 @@ type = "wallpaper"
 type = "session"
 
 [widget.clock]
-format = "{:%H:%M}"
+format = "{:%Y-%m-%d %H:%M}"
 tooltip_format = "{:%A, %Y-%m-%d}"
 font_weight = 700
 
