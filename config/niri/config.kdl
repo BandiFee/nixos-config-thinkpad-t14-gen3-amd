@@ -136,7 +136,10 @@ window-rule {
     open-floating true
     default-column-width { proportion 0.55; }
     default-window-height { proportion 0.60; }
-    background-effect { blur true; }
+    background-effect {
+        blur true
+        xray true
+    }
 }
 
 // Picture-in-picture and small utility windows are more useful floating.

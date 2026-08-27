@@ -61,7 +61,7 @@
     settings = {
       # A dark glass-like surface: black tint with the wallpaper showing through.
       background_opacity = 0.70;
-      background_blur = 0;
+      background_blur = 1;
       window_padding_width = 10;
       confirm_os_window_close = 0;
       enable_audio_bell = false;
