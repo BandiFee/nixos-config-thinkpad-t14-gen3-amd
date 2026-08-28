@@ -33,7 +33,8 @@
       settings = {
         globalOptions."Hotkey/TriggerKeys"."0" = "Super+space";
 
-        addons.classicui.globalSection.Theme = "catppuccin-mocha-mauve";
+        # Noctalia rewrites this theme from the current wallpaper palette.
+        addons.classicui.globalSection.Theme = "noctalia-glass";
 
         inputMethod = {
           GroupOrder."0" = "Default";
@@ -152,6 +153,12 @@
     };
 
     configFile."niri/config.kdl".source = ./config/niri/config.kdl;
+    configFile."noctalia/templates/fcitx5/theme.conf".source =
+      ./config/noctalia/templates/fcitx5/theme.conf;
+    configFile."noctalia/templates/fcitx5/panel.svg".source =
+      ./config/noctalia/templates/fcitx5/panel.svg;
+    configFile."noctalia/templates/fcitx5/highlight.svg".source =
+      ./config/noctalia/templates/fcitx5/highlight.svg;
     configFile."fastfetch/config.jsonc".source =
       ./config/fastfetch/config.jsonc;
     configFile."fastfetch/logo.png".source = ./config/fastfetch/logo.png;

@@ -64,6 +64,23 @@ wallpaper_scheme = "m3-content"
 enable_builtin_templates = true
 enable_community_templates = false
 
+# Render Fcitx5's glass theme whenever Noctalia derives a new palette from the
+# wallpaper. The reload hook makes the new colours visible immediately.
+[theme.templates.user.fcitx5-theme]
+input_path = "~/.config/noctalia/templates/fcitx5/theme.conf"
+output_path = "~/.local/share/fcitx5/themes/noctalia-glass/theme.conf"
+post_hook = "fcitx5-remote -r"
+
+[theme.templates.user.fcitx5-panel]
+input_path = "~/.config/noctalia/templates/fcitx5/panel.svg"
+output_path = "~/.local/share/fcitx5/themes/noctalia-glass/panel.svg"
+post_hook = "fcitx5-remote -r"
+
+[theme.templates.user.fcitx5-highlight]
+input_path = "~/.config/noctalia/templates/fcitx5/highlight.svg"
+output_path = "~/.local/share/fcitx5/themes/noctalia-glass/highlight.svg"
+post_hook = "fcitx5-remote -r"
+
 # A stationary wallpaper is cheaper and calmer than a second blurred backdrop.
 [backdrop]
 enabled = false
