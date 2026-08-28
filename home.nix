@@ -164,6 +164,12 @@
       ./config/noctalia/templates/fcitx5/panel.svg;
     configFile."noctalia/templates/fcitx5/highlight.svg".source =
       ./config/noctalia/templates/fcitx5/highlight.svg;
+    # Home Manager already owns Fcitx5's graphical-session service. Disable
+    # the package's XDG autostart entry so the two instances do not race.
+    configFile."autostart/org.fcitx.Fcitx5.desktop".text = ''
+      [Desktop Entry]
+      Hidden=true
+    '';
     configFile."fastfetch/config.jsonc".source =
       ./config/fastfetch/config.jsonc;
     configFile."fastfetch/logo.png".source = ./config/fastfetch/logo.png;

@@ -65,21 +65,23 @@ enable_builtin_templates = true
 enable_community_templates = false
 
 # Render Fcitx5's glass theme whenever Noctalia derives a new palette from the
-# wallpaper. The reload hook makes the new colours visible immediately.
+# wallpaper. Generate both SVG assets before theme.conf, then restart Fcitx5
+# once so Classic UI drops its cached colours and images.
 [theme.templates.user.fcitx5-theme]
+index = 30
 input_path = "~/.config/noctalia/templates/fcitx5/theme.conf"
 output_path = "~/.local/share/fcitx5/themes/noctalia-glass/theme.conf"
-post_hook = "fcitx5-remote -r"
+post_hook = "systemctl --user restart fcitx5-daemon.service"
 
 [theme.templates.user.fcitx5-panel]
+index = 10
 input_path = "~/.config/noctalia/templates/fcitx5/panel.svg"
 output_path = "~/.local/share/fcitx5/themes/noctalia-glass/panel.svg"
-post_hook = "fcitx5-remote -r"
 
 [theme.templates.user.fcitx5-highlight]
+index = 20
 input_path = "~/.config/noctalia/templates/fcitx5/highlight.svg"
 output_path = "~/.local/share/fcitx5/themes/noctalia-glass/highlight.svg"
-post_hook = "fcitx5-remote -r"
 
 # A stationary wallpaper is cheaper and calmer than a second blurred backdrop.
 [backdrop]
