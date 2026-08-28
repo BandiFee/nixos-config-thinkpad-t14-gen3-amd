@@ -201,7 +201,7 @@
     time_format = "[ %Y-%m-%d || %H:%M ]"
     greeting = """
     [+] Welcome back to NixOS on ThinkPad T14 [+]
-    Authentication: fingerprint first, password fallback enabled
+    Sign in with your fingerprint, or enter your password.
     """
     align_greeting = "center"
 
