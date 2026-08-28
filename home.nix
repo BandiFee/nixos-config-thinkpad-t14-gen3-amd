@@ -30,6 +30,13 @@
       pkgs.wl-clipboard
     ];
 
+    pointerCursor = {
+      enable = true;
+      package = pkgs.adwaita-icon-theme;
+      name = "Adwaita";
+      size = 24;
+    };
+
     sessionVariables = {
       NIXOS_OZONE_WL = "1";
       TERMINAL = "kitty";

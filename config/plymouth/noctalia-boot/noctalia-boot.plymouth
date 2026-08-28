@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Noctalia Boot
+Description=Modern ice-blue NixOS splash for the ThinkPad T14
+ModuleName=script
+
+[script]
+ImageDir=/etc/plymouth/themes/noctalia-boot
+ScriptFile=/etc/plymouth/themes/noctalia-boot/noctalia-boot.script

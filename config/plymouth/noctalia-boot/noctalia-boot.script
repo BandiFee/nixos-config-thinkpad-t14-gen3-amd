@@ -1,0 +1,224 @@
+# Noctalia Boot -- a calm, resolution-aware NixOS splash.
+
+screen.x = Window.GetX();
+screen.y = Window.GetY();
+screen.width = Window.GetWidth();
+screen.height = Window.GetHeight();
+
+ui_scale = screen.height / 1200;
+if (ui_scale < 0.65) ui_scale = 0.65;
+if (ui_scale > 1.35) ui_scale = 1.35;
+
+# Fill the output while preserving the 16:10 background composition.
+background.source = Image("background.png");
+background.source_width = background.source.GetWidth();
+background.source_height = background.source.GetHeight();
+
+if (screen.width * background.source_height > screen.height * background.source_width)
+  {
+    background.scaled_width = screen.width;
+    background.scaled_height = Math.Int(background.source_height * screen.width / background.source_width);
+  }
+else
+  {
+    background.scaled_height = screen.height;
+    background.scaled_width = Math.Int(background.source_width * screen.height / background.source_height);
+  }
+
+background.scaled = background.source.Scale(background.scaled_width, background.scaled_height);
+background.image = background.scaled.Crop(
+  Math.Int((background.scaled_width - screen.width) / 2),
+  Math.Int((background.scaled_height - screen.height) / 2),
+  screen.width,
+  screen.height
+);
+background.sprite = Sprite(background.image);
+background.sprite.SetPosition(screen.x, screen.y, 0);
+
+# The horizontal mark stays quiet and secondary to the spinner.
+brand.source = Image("brand-logo.png");
+brand.width = Math.Int(brand.source.GetWidth() * ui_scale);
+brand.height = Math.Int(brand.source.GetHeight() * ui_scale);
+brand.image = brand.source.Scale(brand.width, brand.height);
+brand.sprite = Sprite(brand.image);
+brand.x = screen.x + Math.Int((screen.width - brand.width) / 2);
+brand.y = screen.y + Math.Int(screen.height * 0.82 - brand.height / 2);
+brand.sprite.SetPosition(brand.x, brand.y, 8);
+brand.sprite.SetOpacity(0);
+
+# Seventy-two frames at 24 Hz produce one relaxed three-second revolution.
+spinner.size = Math.Int(240 * ui_scale);
+for (index = 0; index < 72; index++)
+  {
+    spinner.source[index] = Image("spinner-" + index + ".png");
+    spinner.image[index] = spinner.source[index].Scale(spinner.size, spinner.size);
+  }
+
+spinner.sprite = Sprite(spinner.image[0]);
+spinner.x = screen.x + Math.Int((screen.width - spinner.size) / 2);
+spinner.y = screen.y + Math.Int((screen.height - spinner.size) / 2);
+spinner.sprite.SetPosition(spinner.x, spinner.y, 10);
+spinner.sprite.SetOpacity(0);
+
+state.mode = "normal";
+state.tick = 0;
+
+fun refresh_callback ()
+  {
+    frame = state.tick % 72;
+    spinner.sprite.SetImage(spinner.image[frame]);
+
+    if (state.tick < 12)
+      fade = state.tick / 12;
+    else
+      fade = 1;
+
+    if (state.mode == "normal")
+      {
+        spinner.sprite.SetOpacity(fade);
+        brand.sprite.SetOpacity(fade * 0.80);
+      }
+    else
+      {
+        spinner.sprite.SetOpacity(0.24);
+        brand.sprite.SetOpacity(0);
+      }
+
+    state.tick++;
+  }
+
+Plymouth.SetRefreshRate(24);
+Plymouth.SetRefreshFunction(refresh_callback);
+
+# Password and question UI used when TPM-backed unlocking needs interaction.
+dialog.panel_source = Image("dialog-panel.png");
+dialog.panel_width = Math.Int(dialog.panel_source.GetWidth() * ui_scale);
+dialog.panel_height = Math.Int(dialog.panel_source.GetHeight() * ui_scale);
+dialog.panel_image = dialog.panel_source.Scale(dialog.panel_width, dialog.panel_height);
+dialog.panel_sprite = Sprite(dialog.panel_image);
+dialog.panel_x = screen.x + Math.Int((screen.width - dialog.panel_width) / 2);
+dialog.panel_y = screen.y + Math.Int(screen.height * 0.69 - dialog.panel_height / 2);
+dialog.panel_sprite.SetPosition(dialog.panel_x, dialog.panel_y, 100);
+dialog.panel_sprite.SetOpacity(0);
+
+dialog.prompt_sprite = Sprite();
+dialog.prompt_sprite.SetPosition(0, 0, 102);
+dialog.prompt_sprite.SetOpacity(0);
+dialog.answer_sprite = Sprite();
+dialog.answer_sprite.SetPosition(0, 0, 102);
+dialog.answer_sprite.SetOpacity(0);
+dialog.bullet_image = Image.Text("●", 0.24, 0.42, 0.60, 1, "Inter 18", "center");
+
+fun hide_dialog ()
+  {
+    dialog.panel_sprite.SetOpacity(0);
+    dialog.prompt_sprite.SetOpacity(0);
+    dialog.answer_sprite.SetOpacity(0);
+    for (index = 0; dialog.bullet[index]; index++)
+      dialog.bullet[index].sprite.SetOpacity(0);
+  }
+
+fun show_prompt (prompt)
+  {
+    dialog.panel_sprite.SetOpacity(1);
+    dialog.prompt_image = Image.Text(prompt, 0.13, 0.23, 0.35, 1, "Inter 18", "center");
+    dialog.prompt_sprite.SetImage(dialog.prompt_image);
+    dialog.prompt_sprite.SetPosition(
+      screen.x + Math.Int((screen.width - dialog.prompt_image.GetWidth()) / 2),
+      dialog.panel_y + Math.Int(dialog.panel_height * 0.32),
+      102
+    );
+    dialog.prompt_sprite.SetOpacity(1);
+  }
+
+fun display_password_callback (prompt, bullets)
+  {
+    state.mode = "password";
+    hide_dialog();
+    show_prompt(prompt);
+
+    total_width = bullets * dialog.bullet_image.GetWidth();
+    start_x = screen.x + Math.Int((screen.width - total_width) / 2);
+    bullet_y = dialog.panel_y + Math.Int(dialog.panel_height * 0.61);
+
+    for (index = 0; dialog.bullet[index] || index < bullets; index++)
+      {
+        if (!dialog.bullet[index])
+          {
+            dialog.bullet[index].sprite = Sprite(dialog.bullet_image);
+            dialog.bullet[index].sprite.SetPosition(0, 0, 103);
+          }
+
+        if (index < bullets)
+          {
+            dialog.bullet[index].sprite.SetPosition(
+              start_x + index * dialog.bullet_image.GetWidth(),
+              bullet_y,
+              103
+            );
+            dialog.bullet[index].sprite.SetOpacity(1);
+          }
+        else
+          dialog.bullet[index].sprite.SetOpacity(0);
+      }
+  }
+
+fun display_question_callback (prompt, entry)
+  {
+    state.mode = "question";
+    hide_dialog();
+    show_prompt(prompt);
+
+    dialog.answer_image = Image.Text(entry, 0.24, 0.42, 0.60, 1, "Inter 17", "center");
+    dialog.answer_sprite.SetImage(dialog.answer_image);
+    dialog.answer_sprite.SetPosition(
+      screen.x + Math.Int((screen.width - dialog.answer_image.GetWidth()) / 2),
+      dialog.panel_y + Math.Int(dialog.panel_height * 0.61),
+      102
+    );
+    dialog.answer_sprite.SetOpacity(1);
+  }
+
+fun display_normal_callback ()
+  {
+    state.mode = "normal";
+    hide_dialog();
+  }
+
+Plymouth.SetDisplayPasswordFunction(display_password_callback);
+Plymouth.SetDisplayQuestionFunction(display_question_callback);
+Plymouth.SetDisplayNormalFunction(display_normal_callback);
+
+# Quiet status messages sit near the bottom and disappear cleanly.
+message.sprite = Sprite();
+message.sprite.SetPosition(0, 0, 120);
+message.sprite.SetOpacity(0);
+
+fun display_message_callback (text)
+  {
+    message.image = Image.Text(text, 0.21, 0.32, 0.44, 0.80, "Inter 14", "center");
+    message.sprite.SetImage(message.image);
+    message.sprite.SetPosition(
+      screen.x + Math.Int((screen.width - message.image.GetWidth()) / 2),
+      screen.y + Math.Int(screen.height * 0.93),
+      120
+    );
+    message.sprite.SetOpacity(1);
+  }
+
+fun hide_message_callback (text)
+  {
+    message.sprite.SetOpacity(0);
+  }
+
+Plymouth.SetDisplayMessageFunction(display_message_callback);
+Plymouth.SetHideMessageFunction(hide_message_callback);
+
+fun quit_callback ()
+  {
+    spinner.sprite.SetOpacity(0);
+    brand.sprite.SetOpacity(0);
+    hide_dialog();
+  }
+
+Plymouth.SetQuitFunction(quit_callback);
