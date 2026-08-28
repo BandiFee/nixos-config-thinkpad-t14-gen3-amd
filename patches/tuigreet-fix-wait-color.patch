@@ -1,0 +1,19 @@
+diff --git a/crates/tuigreet/src/ui/prompt.rs b/crates/tuigreet/src/ui/prompt.rs
+index a70762f..fa19c10 100644
+--- a/crates/tuigreet/src/ui/prompt.rs
++++ b/crates/tuigreet/src/ui/prompt.rs
+@@ -161,7 +161,13 @@ pub fn draw_with_area(
+       {
+         f.render_widget(answer_label, chunks[ANSWER_INDEX]);
+ 
+-        if !greeter.asking_for_secret || greeter.secret_display.show() {
++        // While working (waiting for greetd), the buffer is cleared and the
++        // answer row shows "Please wait...". Rendering the now-empty secret
++        // value on top recolors the tail of that message with the input color
++        // (e.g. "Please Wai" white but "t..." green). Skip it while working.
++        if !greeter.working
++          && (!greeter.asking_for_secret || greeter.secret_display.show())
++        {
+           let value = match (greeter.asking_for_secret, &greeter.secret_display)
+           {
+             (true, SecretDisplay::Character(pool)) => {
