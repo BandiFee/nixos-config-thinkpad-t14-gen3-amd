@@ -21,6 +21,7 @@
       pkgs.nautilus
       pkgs.pavucontrol
       pkgs.playerctl
+      pkgs.vscode
       pkgs.wget
       pkgs.wl-clipboard
     ];
