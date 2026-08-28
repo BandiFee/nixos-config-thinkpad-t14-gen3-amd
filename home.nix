@@ -27,10 +27,13 @@
       addons = [
         pkgs.qt6Packages.fcitx5-chinese-addons
         pkgs.fcitx5-mozc
+        (pkgs.catppuccin-fcitx5.override { withRoundedCorners = true; })
       ];
 
       settings = {
         globalOptions."Hotkey/TriggerKeys"."0" = "Super+space";
+
+        addons.classicui.globalSection.Theme = "catppuccin-mocha-mauve";
 
         inputMethod = {
           GroupOrder."0" = "Default";
