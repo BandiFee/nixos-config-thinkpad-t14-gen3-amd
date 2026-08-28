@@ -102,19 +102,13 @@ layer-rule {
     }
 }
 
-// NyxNiri-style glass windows: keep the desktop visible through a lightly
-// tinted surface, with a little more transparency for unfocused windows.
+// Match Kitty's glass-like background opacity across application windows.
 window-rule {
-    opacity 0.90
+    opacity 0.70
     background-effect {
         blur true
         xray false
     }
-}
-
-window-rule {
-    match is-focused=false
-    opacity 0.85
 }
 
 blur {
