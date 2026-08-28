@@ -24,6 +24,8 @@
     type = "fcitx5";
 
     fcitx5 = {
+      waylandFrontend = true;
+
       addons = [
         pkgs.qt6Packages.fcitx5-chinese-addons
         pkgs.fcitx5-mozc
