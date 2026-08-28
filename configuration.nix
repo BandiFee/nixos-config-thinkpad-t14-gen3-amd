@@ -35,6 +35,7 @@
       tuigreet = prev.tuigreet.overrideAttrs (old: {
         patches = (old.patches or [ ]) ++ [
           ./patches/tuigreet-center-time.patch
+          ./patches/tuigreet-escape-reset.patch
         ];
       });
     })
@@ -83,7 +84,11 @@
 
   i18n.defaultLocale = "en_US.UTF-8";
 
-  console.keyMap = "us";
+  console = {
+    keyMap = "us";
+    packages = [ pkgs.terminus_font ];
+    font = "${pkgs.terminus_font}/share/consolefonts/ter-v32n.psf.gz";
+  };
 
   # ============================================================
   # User
@@ -173,13 +178,17 @@
     [display]
     show_time = true
     time_format = "[ %Y-%m-%d || %H:%M ]"
-    greeting = "[+] Welcome back to NixOS on ThinkPad T14 [+]"
+    greeting = """
+    [+] Welcome back to NixOS on ThinkPad T14 [+]
+    Authentication: fingerprint first, password fallback enabled
+    Esc: return to username
+    """
     align_greeting = "center"
 
     [layout]
-    width = 64
+    width = 80
     window_padding = 1
-    container_padding = 1
+    container_padding = 2
     prompt_padding = 1
 
     [layout.widgets]

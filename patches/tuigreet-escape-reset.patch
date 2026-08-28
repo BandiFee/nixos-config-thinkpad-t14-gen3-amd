@@ -1,0 +1,124 @@
+diff --git a/crates/tuigreet/src/keyboard.rs b/crates/tuigreet/src/keyboard.rs
+--- a/crates/tuigreet/src/keyboard.rs
++++ b/crates/tuigreet/src/keyboard.rs
+@@ -43,6 +43,19 @@
+ ) -> Result<(), Box<dyn Error>> {
+   let mut greeter = greeter.write().await;
+ 
++  // Escape must remain available while greetd is waiting for PAM, including
++  // during fingerprint authentication. Always cancel the current session and
++  // return to a clean username prompt instead of restoring a transient mode.
++  if matches!(input.code, KeyCode::Esc) {
++    Ipc::cancel(&mut greeter).await;
++    greeter.previous_buffer = None;
++    greeter.cursor_offset = 0;
++    greeter.asking_for_secret = false;
++    greeter.reset(false).await;
++
++    return Ok(());
++  }
++
+   if greeter.working {
+     return Ok(());
+   }
+@@ -76,30 +89,6 @@
+       }
+     },
+ 
+-    // Depending on the active screen, pressing Escape will either return to the
+-    // previous mode (close a popup, for example), or cancel the `greetd`
+-    // session.
+-    KeyEvent {
+-      code: KeyCode::Esc, ..
+-    } => {
+-      match greeter.mode {
+-        Mode::Command => {
+-          greeter.mode = greeter.previous_mode;
+-          greeter.buffer = greeter.previous_buffer.take().unwrap_or_default();
+-          greeter.cursor_offset = 0;
+-        },
+-
+-        Mode::Users | Mode::Sessions | Mode::Power | Mode::Background => {
+-          greeter.mode = greeter.previous_mode;
+-        },
+-
+-        _ => {
+-          Ipc::cancel(&mut greeter).await;
+-          greeter.reset(false).await;
+-        },
+-      }
+-    },
+-
+     // Simple cursor directions in text fields.
+     KeyEvent {
+       code: KeyCode::Left,
+@@ -608,35 +597,31 @@
+ 
+     {
+       let mut greeter = greeter.write().await;
+-      greeter.previous_mode = Mode::Username;
+-      greeter.mode = Mode::Command;
+-      greeter.previous_buffer = Some("apognu".to_string());
+-      greeter.buffer = "newcommand".to_string();
+-      greeter.cursor_offset = 2;
+-    }
+-
+-    let result = handle(
+-      greeter.clone(),
+-      KeyEvent::new(KeyCode::Esc, KeyModifiers::empty()),
+-      Ipc::new(),
+-    )
+-    .await;
+-
+-    {
+-      let status = greeter.read().await;
+-
+-      assert!(matches!(result, Ok(())));
+-      assert_eq!(status.mode, Mode::Username);
+-      assert_eq!(status.buffer, "apognu".to_string());
+-      assert!(status.previous_buffer.is_none());
+-      assert_eq!(status.cursor_offset, 0);
++      greeter.mock = true;
+     }
+ 
+-    for mode in [Mode::Users, Mode::Sessions, Mode::Power] {
++    for mode in [
++      Mode::Username,
++      Mode::Password,
++      Mode::Action,
++      Mode::Users,
++      Mode::Command,
++      Mode::Sessions,
++      Mode::Power,
++      Mode::Background,
++      Mode::Processing,
++    ] {
+       {
+         let mut greeter = greeter.write().await;
+-        greeter.previous_mode = Mode::Username;
+         greeter.mode = mode;
++        greeter.previous_mode = Mode::Password;
++        greeter.username =
++          MaskedString::from("apognu".to_string(), None);
++        greeter.previous_buffer = Some("old input".to_string());
++        greeter.buffer = "secret".to_string();
++        greeter.cursor_offset = 2;
++        greeter.asking_for_secret = true;
++        greeter.working = true;
+       }
+ 
+       let result = handle(
+@@ -651,6 +636,13 @@
+ 
+         assert!(matches!(result, Ok(())));
+         assert_eq!(status.mode, Mode::Username);
++        assert_eq!(status.previous_mode, Mode::Username);
++        assert_eq!(status.username.value, String::new());
++        assert_eq!(status.buffer, String::new());
++        assert!(status.previous_buffer.is_none());
++        assert_eq!(status.cursor_offset, 0);
++        assert!(!status.asking_for_secret);
++        assert!(!status.working);
+       }
+     }
+   }
