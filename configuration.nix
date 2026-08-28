@@ -35,7 +35,6 @@
       tuigreet = prev.tuigreet.overrideAttrs (old: {
         patches = (old.patches or [ ]) ++ [
           ./patches/tuigreet-center-time.patch
-          ./patches/tuigreet-escape-reset.patch
         ];
       });
     })
@@ -181,7 +180,6 @@
     greeting = """
     [+] Welcome back to NixOS on ThinkPad T14 [+]
     Authentication: fingerprint first, password fallback enabled
-    Esc: return to username
     """
     align_greeting = "center"
 
