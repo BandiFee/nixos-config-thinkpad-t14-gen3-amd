@@ -38,6 +38,9 @@
         # Noctalia rewrites this theme from the current wallpaper palette.
         addons.classicui.globalSection.Theme = "noctalia-glass";
 
+        # Enable online candidates by default for Simplified Chinese Pinyin.
+        addons.pinyin.globalSection.CloudPinyinEnabled = "True";
+
         inputMethod = {
           GroupOrder."0" = "Default";
           "Groups/0" = {
