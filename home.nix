@@ -17,7 +17,11 @@
       pkgs.curl
       pkgs.fastfetch
       pkgs.file-roller
-      pkgs.google-chrome
+      # Avoid the GNOME Keyring prompt after fingerprint login. This stores
+      # Chrome's local encryption key without OS keyring protection.
+      (pkgs.google-chrome.override {
+        commandLineArgs = "--password-store=basic";
+      })
       pkgs.nautilus
       pkgs.pavucontrol
       pkgs.playerctl
