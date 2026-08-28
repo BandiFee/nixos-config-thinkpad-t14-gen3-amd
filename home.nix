@@ -17,6 +17,42 @@
 
   programs.home-manager.enable = true;
 
+  # Simplified Chinese Pinyin. Home Manager starts Fcitx5 after the Niri
+  # graphical session is ready, keeping its environment correct for Wayland.
+  i18n.inputMethod = {
+    enable = true;
+    type = "fcitx5";
+
+    fcitx5 = {
+      addons = [
+        pkgs.qt6Packages.fcitx5-chinese-addons
+        pkgs.fcitx5-mozc
+      ];
+
+      settings = {
+        globalOptions."Hotkey/TriggerKeys"."0" = "Super+space";
+
+        inputMethod = {
+          GroupOrder."0" = "Default";
+          "Groups/0" = {
+            Name = "Default";
+            "Default Layout" = "us";
+            DefaultIM = "pinyin";
+          };
+          "Groups/0/Items/0".Name = "keyboard-us";
+          "Groups/0/Items/1" = {
+            Layout = "us";
+            Name = "pinyin";
+          };
+          "Groups/0/Items/2" = {
+            Layout = "us";
+            Name = "mozc";
+          };
+        };
+      };
+    };
+  };
+
   programs.fish = {
     enable = true;
     interactiveShellInit = ''
