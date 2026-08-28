@@ -11,11 +11,34 @@
     stateVersion = "26.05";
 
     packages = [
+      pkgs.brightnessctl
+      pkgs.claude-code
+      pkgs.codex
+      pkgs.curl
       pkgs.fastfetch
+      pkgs.file-roller
+      pkgs.nautilus
+      pkgs.pavucontrol
+      pkgs.playerctl
+      pkgs.wget
+      pkgs.wl-clipboard
     ];
+
+    sessionVariables = {
+      NIXOS_OZONE_WL = "1";
+      TERMINAL = "kitty";
+    };
   };
 
   programs.home-manager.enable = true;
+
+  programs.btop.enable = true;
+
+  programs.firefox.enable = true;
+
+  programs.git.enable = true;
+
+  programs.vim.enable = true;
 
   # Simplified Chinese Pinyin. Home Manager starts Fcitx5 after the Niri
   # graphical session is ready, keeping its environment correct for Wayland.
@@ -146,6 +169,25 @@
     enable = true;
     systemd.enable = false;
     settings = ./config/noctalia/config.toml;
+  };
+
+  # The authorization agent belongs to the graphical user session while the
+  # Polkit daemon itself remains enabled system-wide in configuration.nix.
+  systemd.user.services.polkit-gnome-authentication-agent = {
+    Unit = {
+      Description = "Polkit authentication agent";
+      After = [ "graphical-session.target" ];
+      PartOf = [ "graphical-session.target" ];
+    };
+
+    Service = {
+      Type = "simple";
+      ExecStart =
+        "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
+      Restart = "on-failure";
+    };
+
+    Install.WantedBy = [ "graphical-session.target" ];
   };
 
   xdg = {

@@ -164,11 +164,6 @@
   # Register Fish as a system shell and provide its system-wide completions.
   programs.fish.enable = true;
 
-  environment.sessionVariables = {
-    NIXOS_OZONE_WL = "1";
-    TERMINAL = "kitty";
-  };
-
   # ============================================================
   # Login
   # ============================================================
@@ -238,32 +233,6 @@
   # gvfs also enables udisks2
   services.gvfs.enable = true;
 
-  # Polkit GUI authentication agent
-  systemd.user.services.polkit-gnome-authentication-agent = {
-    description = "Polkit authentication agent";
-
-    wantedBy = [
-      "graphical-session.target"
-    ];
-
-    partOf = [
-      "graphical-session.target"
-    ];
-
-    after = [
-      "graphical-session.target"
-    ];
-
-    serviceConfig = {
-      Type = "simple";
-
-      ExecStart =
-        "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
-
-      Restart = "on-failure";
-    };
-  };
-
   # ============================================================
   # Steam / Gaming
   # ============================================================
@@ -280,47 +249,28 @@
     # X11 compatibility
     xwayland-satellite
 
-    # Desktop
-    nautilus
-    file-roller
-    pavucontrol
-
-    brightnessctl
-    playerctl
-    wl-clipboard
-
-    # Browser
-    firefox
-
-    # CLI
-    git
-    vim
-    wget
-    curl
-    fastfetch
-    btop
-    codex
-
+    # Hardware and graphics diagnostics available system-wide
     pciutils
     usbutils
-
-    # GPU diagnostics
     vulkan-tools
     mesa-demos
     libva-utils
-
-    # Fonts
-    noto-fonts
-    noto-fonts-cjk-sans
-    noto-fonts-color-emoji
-    nerd-fonts.jetbrains-mono
   ];
 
   # ============================================================
   # Fonts
   # ============================================================
 
-  fonts.fontconfig.enable = true;
+  fonts = {
+    fontconfig.enable = true;
+
+    packages = with pkgs; [
+      noto-fonts
+      noto-fonts-cjk-sans
+      noto-fonts-color-emoji
+      nerd-fonts.jetbrains-mono
+    ];
+  };
 
   # ============================================================
   # Compatibility
