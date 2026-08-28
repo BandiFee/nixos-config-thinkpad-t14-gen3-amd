@@ -17,6 +17,7 @@
       pkgs.curl
       pkgs.fastfetch
       pkgs.file-roller
+      pkgs.google-chrome
       pkgs.nautilus
       pkgs.pavucontrol
       pkgs.playerctl
