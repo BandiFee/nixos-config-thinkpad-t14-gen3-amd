@@ -333,5 +333,17 @@
   # Compatibility
   # ============================================================
 
+  # Run prebuilt, dynamically linked Linux binaries such as Conda Python.
+  # SkiaSharp's bundled native library also needs fontconfig at runtime.
+  programs.nix-ld = {
+    enable = true;
+    libraries = with pkgs; [
+      fontconfig
+      libx11
+      libice
+      libsm
+    ];
+  };
+
   system.stateVersion = "26.05";
 }

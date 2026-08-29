@@ -21,6 +21,19 @@ let
           ./patches/noctalia-mpris-lyrics.patch
         ];
       });
+
+  # Rider already exposes its X11 libraries to child processes. Add fontconfig
+  # as well so Avalonia/SkiaSharp applications launched by Rider can load their
+  # bundled native renderer without setting LD_LIBRARY_PATH globally.
+  rider-with-avalonia-libs = pkgs.symlinkJoin {
+    name = "rider-with-avalonia-libs";
+    paths = [ pkgs.jetbrains.rider ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/rider \
+        --prefix LD_LIBRARY_PATH : "${pkgs.lib.makeLibraryPath [ pkgs.fontconfig ]}"
+    '';
+  };
 in
 {
   imports = [
@@ -41,6 +54,8 @@ in
       pkgs.fastfetch
       pkgs.file-roller
       go-musicfox-latest
+      pkgs.jetbrains.pycharm
+      rider-with-avalonia-libs
       # Avoid the GNOME Keyring prompt after fingerprint login. This stores
       # Chrome's local encryption key without OS keyring protection.
       (pkgs.google-chrome.override {
