@@ -37,6 +37,7 @@ in
       pkgs.claude-code
       pkgs.codex
       pkgs.curl
+      pkgs.dotnet-sdk_10
       pkgs.fastfetch
       pkgs.file-roller
       go-musicfox-latest
@@ -62,6 +63,7 @@ in
     };
 
     sessionVariables = {
+      BROWSER = "google-chrome-stable";
       NIXOS_OZONE_WL = "1";
       TERMINAL = "kitty";
     };
@@ -239,8 +241,12 @@ in
 
     mimeApps = {
       enable = true;
-      defaultApplications."x-scheme-handler/terminal" =
-        [ "kitty.desktop" ];
+      defaultApplications = {
+        "text/html" = [ "google-chrome.desktop" ];
+        "x-scheme-handler/http" = [ "google-chrome.desktop" ];
+        "x-scheme-handler/https" = [ "google-chrome.desktop" ];
+        "x-scheme-handler/terminal" = [ "kitty.desktop" ];
+      };
     };
 
     configFile."niri/config.kdl".source = ./config/niri/config.kdl;
