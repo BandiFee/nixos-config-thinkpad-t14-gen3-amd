@@ -13,6 +13,14 @@ let
 
     vendorHash = "sha256-+lmsd7fqdlKxxXGh6Zwl9xtNXPZrR3xqgROzI9L4xls=";
   });
+
+  noctalia-with-mpris-lyrics =
+    inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs
+      (oldAttrs: {
+        patches = (oldAttrs.patches or [ ]) ++ [
+          ./patches/noctalia-mpris-lyrics.patch
+        ];
+      });
 in
 {
   imports = [
@@ -190,16 +198,13 @@ in
       "ctrl+shift+enter" = "toggle_layout stack";
     };
 
-    # With shell integration, clicking the command being edited moves the
-    # text cursor to that position while preserving selection and link clicks.
-    mouseBindings."left click" =
-      "ungrabbed mouse_handle_click selection link prompt";
   };
 
   # Niri starts Noctalia with the graphical session. The upstream module
   # installs the cached package and validates this TOML during the build.
   programs.noctalia = {
     enable = true;
+    package = noctalia-with-mpris-lyrics;
     systemd.enable = false;
     settings = ./config/noctalia/config.toml;
   };
@@ -246,6 +251,10 @@ in
       Hidden=true
     '';
     configFile."go-musicfox/config.toml".text = ''
+      [main.notification]
+      enable = false
+      inApp = false
+
       [theme]
       centerEverything = true
     '';

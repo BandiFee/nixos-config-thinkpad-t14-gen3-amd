@@ -1,0 +1,356 @@
+diff --git a/src/dbus/mpris/mpris_service.cpp b/src/dbus/mpris/mpris_service.cpp
+index 6e44f35..66efbb4 100644
+--- a/src/dbus/mpris/mpris_service.cpp
++++ b/src/dbus/mpris/mpris_service.cpp
+@@ -11,0 +12 @@
++#include <charconv>
+@@ -14,0 +16 @@
++#include <iterator>
+@@ -20,0 +23 @@
++#include <system_error>
+@@ -37,0 +41,129 @@ namespace {
++  struct TimedLyricLine {
++    std::int64_t positionUs = 0;
++    std::string text;
++  };
++
++  struct ParsedLyrics {
++    std::string source;
++    std::vector<TimedLyricLine> lines;
++    std::string untimedText;
++  };
++
++  std::optional<std::int64_t> parseLrcTimestamp(std::string_view token) {
++    const auto colon = token.find(':');
++    if (colon == std::string_view::npos || colon == 0 || colon + 1 >= token.size()) {
++      return std::nullopt;
++    }
++
++    std::int64_t minutes = 0;
++    const auto [minutesEnd, minutesError] =
++        std::from_chars(token.data(), token.data() + colon, minutes);
++    if (minutesError != std::errc{} || minutesEnd != token.data() + colon || minutes < 0) {
++      return std::nullopt;
++    }
++
++    const std::string_view secondsToken = token.substr(colon + 1);
++    const auto dot = secondsToken.find('.');
++    const std::string_view wholeSecondsToken = secondsToken.substr(0, dot);
++    if (wholeSecondsToken.empty()) {
++      return std::nullopt;
++    }
++
++    std::int64_t seconds = 0;
++    const auto [secondsEnd, secondsError] = std::from_chars(
++        wholeSecondsToken.data(), wholeSecondsToken.data() + wholeSecondsToken.size(), seconds
++    );
++    if (secondsError != std::errc{}
++        || secondsEnd != wholeSecondsToken.data() + wholeSecondsToken.size()
++        || seconds < 0
++        || seconds >= 60) {
++      return std::nullopt;
++    }
++
++    std::int64_t fractionUs = 0;
++    if (dot != std::string_view::npos) {
++      const std::string_view fraction = secondsToken.substr(dot + 1);
++      if (fraction.empty()) {
++        return std::nullopt;
++      }
++      std::int64_t parsedFraction = 0;
++      const auto digits = std::min<std::size_t>(fraction.size(), 6);
++      const auto [fractionEnd, fractionError] =
++          std::from_chars(fraction.data(), fraction.data() + digits, parsedFraction);
++      if (fractionError != std::errc{} || fractionEnd != fraction.data() + digits) {
++        return std::nullopt;
++      }
++      if (!std::ranges::all_of(fraction.substr(digits), [](unsigned char ch) { return std::isdigit(ch) != 0; })) {
++        return std::nullopt;
++      }
++      for (std::size_t i = digits; i < 6; ++i) {
++        parsedFraction *= 10;
++      }
++      fractionUs = parsedFraction;
++    }
++
++    constexpr std::int64_t kMinuteUs = 60'000'000;
++    if (minutes > (std::numeric_limits<std::int64_t>::max() - seconds * 1'000'000 - fractionUs) / kMinuteUs) {
++      return std::nullopt;
++    }
++    return minutes * kMinuteUs + seconds * 1'000'000 + fractionUs;
++  }
++
++  ParsedLyrics parseLyrics(std::string lyrics) {
++    ParsedLyrics parsed{.source = std::move(lyrics)};
++    std::size_t lineStart = 0;
++    while (lineStart <= parsed.source.size()) {
++      const auto lineEnd = parsed.source.find('\n', lineStart);
++      std::string_view line = lineEnd == std::string::npos
++          ? std::string_view(parsed.source).substr(lineStart)
++          : std::string_view(parsed.source).substr(lineStart, lineEnd - lineStart);
++      line = StringUtils::trimRightView(line);
++
++      std::vector<std::int64_t> timestamps;
++      std::size_t textStart = 0;
++      while (textStart < line.size() && line[textStart] == '[') {
++        const auto close = line.find(']', textStart + 1);
++        if (close == std::string_view::npos) {
++          break;
++        }
++        if (const auto timestamp = parseLrcTimestamp(line.substr(textStart + 1, close - textStart - 1));
++            timestamp.has_value()) {
++          timestamps.push_back(*timestamp);
++        }
++        textStart = close + 1;
++      }
++
++      const std::string text = StringUtils::trim(line.substr(textStart));
++      if (!timestamps.empty()) {
++        for (const auto timestamp : timestamps) {
++          parsed.lines.push_back({.positionUs = timestamp, .text = text});
++        }
++      } else if (timestamps.empty() && !text.empty() && textStart == 0 && parsed.untimedText.empty()) {
++        parsed.untimedText = text;
++      }
++
++      if (lineEnd == std::string::npos) {
++        break;
++      }
++      lineStart = lineEnd + 1;
++    }
++
++    std::ranges::stable_sort(parsed.lines, {}, &TimedLyricLine::positionUs);
++    std::vector<TimedLyricLine> merged;
++    merged.reserve(parsed.lines.size());
++    for (auto& line : parsed.lines) {
++      if (!merged.empty() && merged.back().positionUs == line.positionUs) {
++        if (merged.back().text.empty()) {
++          merged.back().text = std::move(line.text);
++        } else if (!line.text.empty() && merged.back().text != line.text) {
++          merged.back().text += " / ";
++          merged.back().text += line.text;
++        }
++      } else {
++        merged.push_back(std::move(line));
++      }
++    }
++    parsed.lines = std::move(merged);
++    return parsed;
++  }
++
+@@ -297,0 +430 @@ namespace {
++    player["lyrics"] = sdbus::Variant(info.lyrics);
+@@ -356,0 +490,26 @@ namespace {
++MprisLyricWindow lyricWindowAt(const MprisPlayerInfo& player, std::int64_t positionUs) {
++  static thread_local ParsedLyrics cache;
++  if (cache.source != player.lyrics) {
++    cache = parseLyrics(player.lyrics);
++  }
++
++  if (cache.lines.empty()) {
++    return {.current = cache.untimedText};
++  }
++
++  const auto currentEnd = std::ranges::upper_bound(cache.lines, positionUs, {}, &TimedLyricLine::positionUs);
++  if (currentEnd == cache.lines.begin()) {
++    return {.next = currentEnd->text};
++  }
++
++  const auto current = std::prev(currentEnd);
++  MprisLyricWindow window{.current = current->text};
++  if (current != cache.lines.begin()) {
++    window.previous = std::prev(current)->text;
++  }
++  if (currentEnd != cache.lines.end()) {
++    window.next = currentEnd->text;
++  }
++  return window;
++}
++
+@@ -1980,0 +2140,4 @@ void MprisService::applyPlayerSnapshot(
++    if (!logicalTrackChanged && merged.lyrics.empty() && !previous_info.lyrics.empty()) {
++      merged.lyrics = previous_info.lyrics;
++    }
++
+@@ -2080,0 +2244 @@ void MprisService::applyPlayerSnapshot(
++        || previous_info.lyrics != merged.lyrics
+@@ -2754,0 +2919 @@ MprisPlayerInfo MprisService::readPlayerInfoFromProperties(
++      .lyrics = get_string_from_variant(metadata, "xesam:asText"),
+diff --git a/src/dbus/mpris/mpris_service.h b/src/dbus/mpris/mpris_service.h
+index 9acf99a..327f00e 100644
+--- a/src/dbus/mpris/mpris_service.h
++++ b/src/dbus/mpris/mpris_service.h
+@@ -36,0 +37 @@ struct MprisPlayerInfo {
++  std::string lyrics;
+@@ -53,0 +55,6 @@ struct MprisPlayerInfo {
++struct MprisLyricWindow {
++  std::string previous;
++  std::string current;
++  std::string next;
++};
++
+@@ -56,0 +64,3 @@ struct MprisPlayerInfo {
++// Parses synced LRC from xesam:asText and returns the lines surrounding positionUs.
++[[nodiscard]] MprisLyricWindow lyricWindowAt(const MprisPlayerInfo& player, std::int64_t positionUs);
++
+diff --git a/src/shell/bar/bar.cpp b/src/shell/bar/bar.cpp
+index 5907ccb..f5c4396 100644
+--- a/src/shell/bar/bar.cpp
++++ b/src/shell/bar/bar.cpp
+@@ -19,0 +20 @@
++#include "shell/bar/widgets/media_widget.h"
+@@ -1246,0 +1248,42 @@ namespace {
++    // Media text is elastic: let it consume the lane space left after every
++    // sibling has kept its natural size. A second layout pass gives its label
++    // the real width budget, so long titles/lyrics scroll inside the widget
++    // instead of being clipped by the section slot or displacing controls.
++    if (!isVertical) {
++      const float centerLaneGap =
++          instance.centerWidgets.empty() ? 0.0F : static_cast<float>(instance.barConfig.widgetSpacing);
++      auto fitMediaToLane = [&](Flex* section, std::vector<std::unique_ptr<Widget>>& widgets,
++                                std::vector<BarCapsuleRun>& capsuleRuns, float slotMain, FlexJustify justify) {
++        auto mediaIt = std::ranges::find_if(widgets, [](const auto& widget) {
++          return dynamic_cast<MediaWidget*>(widget.get()) != nullptr;
++        });
++        if (mediaIt == widgets.end()) {
++          return;
++        }
++
++        auto* media = static_cast<MediaWidget*>(mediaIt->get());
++        Node* mediaBounds = media->layoutBoundsNode();
++        Node* mediaContent = media->outerNode();
++        if (mediaBounds == nullptr || mediaContent == nullptr) {
++          return;
++        }
++
++        const float sectionNatural = section->width();
++        const float mediaOuter = mediaBounds->width();
++        const float nonMedia = std::max(0.0F, sectionNatural - mediaOuter);
++        const float capsuleOverhead = std::max(0.0F, mediaOuter - mediaContent->width());
++        const float contentBudget = std::max(0.0F, slotMain - centerLaneGap - nonMedia - capsuleOverhead);
++        media->setAvailableLength(contentBudget);
++        media->layout(renderer, barAreaW, barAreaH);
++        finalizeCapsules(capsuleRuns);
++        configureSection(section, justify);
++      };
++
++      fitMediaToLane(
++          instance.startSection, instance.startWidgets, instance.startCapsuleRuns, startSlotMain, FlexJustify::Start
++      );
++      fitMediaToLane(
++          instance.endSection, instance.endWidgets, instance.endCapsuleRuns, endSlotMain, FlexJustify::End
++      );
++    }
++
+diff --git a/src/shell/bar/widgets/media_widget.cpp b/src/shell/bar/widgets/media_widget.cpp
+index adb360a..fb311ae 100644
+--- a/src/shell/bar/widgets/media_widget.cpp
++++ b/src/shell/bar/widgets/media_widget.cpp
+@@ -14,0 +15 @@
++#include <chrono>
+@@ -32,0 +34,2 @@ MediaWidget::MediaWidget(MprisService* mpris, HttpClient* httpClient, wl_output*
++void MediaWidget::setAvailableLength(float maxLength) noexcept { m_availableLength = std::max(0.0F, maxLength); }
++
+@@ -90 +93,3 @@ void MediaWidget::doLayout(Renderer& renderer, float containerWidth, float conta
+-  const float maxLength = std::max(0.0F, m_maxWidth * m_contentScale);
++  const float configuredMaxLength = std::max(0.0F, m_maxWidth * m_contentScale);
++  const float maxLength = m_availableLength >= 0.0F ? std::min(configuredMaxLength, m_availableLength)
++                                                     : configuredMaxLength;
+@@ -203,0 +209,6 @@ void MediaWidget::syncState(Renderer& renderer) {
++  const bool lyricsPlaying = active.has_value() && active->playbackStatus == "Playing" && !active->lyrics.empty();
++  if (lyricsPlaying && !m_lyricTimer.active()) {
++    m_lyricTimer.startRepeating(std::chrono::milliseconds(500), [this]() { requestUpdate(); });
++  } else if (!lyricsPlaying) {
++    m_lyricTimer.stop();
++  }
+@@ -288,0 +300,5 @@ std::string MediaWidget::buildDisplayText(const MprisPlayerInfo& player, bool hi
++  const auto lyric = lyricWindowAt(player, player.positionUs);
++  if (!lyric.current.empty()) {
++    return lyric.current;
++  }
++
+diff --git a/src/shell/bar/widgets/media_widget.h b/src/shell/bar/widgets/media_widget.h
+index 2f81a9c..7793435 100644
+--- a/src/shell/bar/widgets/media_widget.h
++++ b/src/shell/bar/widgets/media_widget.h
+@@ -2,0 +3 @@
++#include "core/timer_manager.h"
+@@ -42,0 +44 @@ public:
++  void setAvailableLength(float maxLength) noexcept;
+@@ -56,0 +59 @@ private:
++  float m_availableLength = -1.0F;
+@@ -72,0 +76 @@ private:
++  Timer m_lyricTimer;
+diff --git a/src/shell/control_center/tabs/media_tab.cpp b/src/shell/control_center/tabs/media_tab.cpp
+index 7709a78..8b46df6 100644
+--- a/src/shell/control_center/tabs/media_tab.cpp
++++ b/src/shell/control_center/tabs/media_tab.cpp
+@@ -275,0 +276,31 @@ std::unique_ptr<Flex> MediaTab::create() {
++  mediaStack->addChild(
++      ui::column(
++          {.align = FlexAlign::Stretch, .gap = Style::spaceXs * scale},
++          ui::label({
++              .out = &m_lyricPrevious,
++              .fontSize = Style::fontSizeCaption * scale,
++              .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
++              .maxLines = 1,
++              .textAlign = TextAlign::Center,
++              .visible = false,
++          }),
++          ui::label({
++              .out = &m_lyricCurrent,
++              .fontSize = Style::fontSizeBody * scale,
++              .fontWeight = FontWeight::Bold,
++              .color = colorSpecFromRole(ColorRole::Primary),
++              .maxLines = 2,
++              .textAlign = TextAlign::Center,
++              .visible = false,
++          }),
++          ui::label({
++              .out = &m_lyricNext,
++              .fontSize = Style::fontSizeCaption * scale,
++              .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
++              .maxLines = 1,
++              .textAlign = TextAlign::Center,
++              .visible = false,
++          })
++      )
++  );
++
+@@ -552,0 +584,5 @@ void MediaTab::doLayout(Renderer& renderer, float contentWidth, float bodyHeight
++  for (auto* lyricLabel : {m_lyricPrevious, m_lyricCurrent, m_lyricNext}) {
++    if (lyricLabel != nullptr) {
++      lyricLabel->setMaxWidth(mediaWidth);
++    }
++  }
+@@ -691,0 +728,3 @@ void MediaTab::onClose() {
++  m_lyricPrevious = nullptr;
++  m_lyricCurrent = nullptr;
++  m_lyricNext = nullptr;
+@@ -888,0 +928,11 @@ void MediaTab::refresh(Renderer& renderer) {
++    const auto lyrics = lyricWindowAt(player, displayPositionUs);
++    const auto syncLyricLabel = [](Label* label, const std::string& text) {
++      if (label == nullptr) {
++        return;
++      }
++      label->setText(text);
++      label->setVisible(!text.empty());
++    };
++    syncLyricLabel(m_lyricPrevious, lyrics.previous);
++    syncLyricLabel(m_lyricCurrent, lyrics.current);
++    syncLyricLabel(m_lyricNext, lyrics.next);
+@@ -981,0 +1032,6 @@ void MediaTab::refresh(Renderer& renderer) {
++  for (auto* lyricLabel : {m_lyricPrevious, m_lyricCurrent, m_lyricNext}) {
++    if (lyricLabel != nullptr) {
++      lyricLabel->setText("");
++      lyricLabel->setVisible(false);
++    }
++  }
+diff --git a/src/shell/control_center/tabs/media_tab.h b/src/shell/control_center/tabs/media_tab.h
+index 981472e..06a64dd 100644
+--- a/src/shell/control_center/tabs/media_tab.h
++++ b/src/shell/control_center/tabs/media_tab.h
+@@ -78,0 +79,3 @@ private:
++  Label* m_lyricPrevious = nullptr;
++  Label* m_lyricCurrent = nullptr;
++  Label* m_lyricNext = nullptr;
