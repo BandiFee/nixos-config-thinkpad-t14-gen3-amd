@@ -46,6 +46,7 @@ in
       (pkgs.google-chrome.override {
         commandLineArgs = "--password-store=basic";
       })
+      pkgs.micromamba
       pkgs.nautilus
       pkgs.pavucontrol
       pkgs.playerctl
@@ -127,7 +128,11 @@ in
     enable = true;
     interactiveShellInit = ''
       set -g fish_greeting
-    '';
+
+    # Micromamba
+    set -gx MAMBA_ROOT_PREFIX $HOME/.mamba
+    micromamba shell hook --shell fish | source
+  '';
   };
 
   programs.starship = {
