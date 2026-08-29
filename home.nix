@@ -55,6 +55,7 @@ in
       pkgs.file-roller
       go-musicfox-latest
       pkgs.jetbrains.pycharm
+      pkgs.libreoffice
       rider-with-avalonia-libs
       # Avoid the GNOME Keyring prompt after fingerprint login. This stores
       # Chrome's local encryption key without OS keyring protection.
