@@ -1,0 +1,23 @@
+# Nix build outputs
+result
+result-*
+
+# direnv
+.direnv/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Editor / temporary files
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Private keys / credentials
+*.key
+*.pem
+age.key
+keys.txt
