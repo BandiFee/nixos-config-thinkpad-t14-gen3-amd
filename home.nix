@@ -51,6 +51,7 @@ in
       pkgs.vscode
       pkgs.wget
       pkgs.wl-clipboard
+      pkgs.wl-mirror
     ];
 
     pointerCursor = {

@@ -180,6 +180,9 @@ binds {
     Mod+Return { spawn "kitty"; }
     Mod+E { spawn "nautilus" "--new-window"; }
     Mod+B { spawn "firefox"; }
+    // Mirror the internal panel into a window on the focused output.
+    // Focus HDMI first, launch the mirror, then fullscreen it with Mod+Shift+F.
+    Mod+P repeat=false { spawn "wl-mirror" "eDP-1"; }
     Mod+D { spawn "noctalia" "msg" "panel-toggle" "launcher"; }
     Mod+S { spawn "noctalia" "msg" "panel-toggle" "control-center"; }
     Mod+V { spawn "noctalia" "msg" "panel-toggle" "clipboard"; }
