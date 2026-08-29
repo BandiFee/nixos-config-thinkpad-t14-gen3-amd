@@ -105,6 +105,9 @@ background_opacity = 0.94
 offset_x = 16
 offset_y = 16
 
+[osd.kinds]
+media = false
+
 [lockscreen]
 enabled = true
 fingerprint = true
