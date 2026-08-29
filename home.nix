@@ -12,6 +12,11 @@ let
     };
 
     vendorHash = "sha256-+lmsd7fqdlKxxXGh6Zwl9xtNXPZrR3xqgROzI9L4xls=";
+
+    # Balance the cover/lyric group for wide terminals and bilingual lyrics.
+    patches = (_oldAttrs.patches or [ ]) ++ [
+      ./patches/go-musicfox-balanced-layout.patch
+    ];
   });
 
   noctalia-with-mpris-lyrics =
@@ -55,6 +60,7 @@ in
       pkgs.file-roller
       go-musicfox-latest
       pkgs.jetbrains.pycharm
+      pkgs.jetbrains.rust-rover
       pkgs.libreoffice
       rider-with-avalonia-libs
       # Avoid the GNOME Keyring prompt after fingerprint login. This stores
@@ -66,6 +72,8 @@ in
       pkgs.nautilus
       pkgs.pavucontrol
       pkgs.playerctl
+      pkgs.rustup
+      pkgs.typora
       pkgs.vscode
       pkgs.wget
       pkgs.wl-clipboard
@@ -84,6 +92,10 @@ in
       NIXOS_OZONE_WL = "1";
       TERMINAL = "kitty";
     };
+
+    # Prefer the locally patched musicfox even before a system-level
+    # nixos-rebuild updates /etc/profiles/per-user.
+    sessionPath = [ "${go-musicfox-latest}/bin" ];
   };
 
   programs.home-manager.enable = true;
@@ -145,10 +157,16 @@ in
     interactiveShellInit = ''
       set -g fish_greeting
 
-    # Micromamba
-    set -gx MAMBA_ROOT_PREFIX $HOME/.mamba
-    micromamba shell hook --shell fish | source
-  '';
+      # Pick up the patched musicfox immediately, even when this shell inherited
+      # session variables from before the latest Home Manager activation.
+      if not contains -- ${go-musicfox-latest}/bin $PATH
+        set -gx PATH ${go-musicfox-latest}/bin $PATH
+      end
+
+      # Micromamba
+      set -gx MAMBA_ROOT_PREFIX $HOME/.mamba
+      micromamba shell hook --shell fish | source
+    '';
   };
 
   programs.starship = {
@@ -287,6 +305,12 @@ in
       [main.notification]
       enable = false
       inApp = false
+
+      [main.lyric.cover]
+      show = true
+      widthRatio = 0.22
+      cornerRadius = 10
+      spin = false
 
       [theme]
       centerEverything = true

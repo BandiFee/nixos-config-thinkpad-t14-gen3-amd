@@ -1,0 +1,43 @@
+diff --git a/internal/ui/layout_const.go b/internal/ui/layout_const.go
+--- a/internal/ui/layout_const.go
++++ b/internal/ui/layout_const.go
+@@ -90,7 +90,7 @@ const (
+ 	// LyricPaddingDivisor is the divisor for dynamic extra padding
+ 	// calculation in centered lyric mode.
+ 	// 居中歌词模式下动态额外边距计算的分母。
+-	LyricPaddingDivisor = 5
++	LyricPaddingDivisor = 12
+ 
+ 	// MinLyricExtraPadding is the minimum extra padding for centered
+ 	// lyric rendering.
+diff --git a/internal/ui/cover_renderer.go b/internal/ui/cover_renderer.go
+--- a/internal/ui/cover_renderer.go
++++ b/internal/ui/cover_renderer.go
+@@ -717,7 +717,7 @@ func centeredCoverLyricLayout(windowWidth, coverWidth int) (coverStartCol, lyric
+ 		return 1, 0, windowWidth
+ 	}
+ 	gap := CoverRightPadding
+-	lyricWidth = windowWidth / CenteredLyricBlockDivisor
++	lyricWidth = windowWidth * 70 / 100
+ 	if coverWidth+gap+lyricWidth > windowWidth {
+ 		lyricWidth = windowWidth - coverWidth - gap
+ 	}
+diff --git a/internal/ui/lyric_renderer.go b/internal/ui/lyric_renderer.go
+--- a/internal/ui/lyric_renderer.go
++++ b/internal/ui/lyric_renderer.go
+@@ -194,7 +194,14 @@ func (r *LyricRenderer) Update(msg tea.Msg, a *model.App) {
+ 	} else {
+ 		r.lyricLines = CompactLyricLines
+ 	}
+-	r.lyricStartRow = (main.MenuBottomRow() + specLines + endRow - r.lyricLines) / 2
++
++	topRow := main.MenuBottomRow() + specLines
++	if configs.AppConfig.Main.Lyric.Cover.Show {
++		// Pull the cover/lyric group toward the menu on tall terminals.
++		r.lyricStartRow = (2*topRow + endRow - r.lyricLines) / 3
++	} else {
++		r.lyricStartRow = (topRow + endRow - r.lyricLines) / 2
++	}
+ }
+ 
+ // View renders the lyric component.
