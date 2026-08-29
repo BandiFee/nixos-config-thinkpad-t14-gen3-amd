@@ -1,5 +1,19 @@
 { inputs, pkgs, ... }:
 
+let
+  go-musicfox-latest = pkgs.go-musicfox.overrideAttrs (_oldAttrs: rec {
+    version = "5.1.0";
+
+    src = pkgs.fetchFromGitHub {
+      owner = "go-musicfox";
+      repo = "go-musicfox";
+      rev = "v${version}";
+      hash = "sha256-gM3gnUbevPSa2gmiC0DGYPrVRtwHF2TQB0Hu99ISVU8=";
+    };
+
+    vendorHash = "sha256-+lmsd7fqdlKxxXGh6Zwl9xtNXPZrR3xqgROzI9L4xls=";
+  });
+in
 {
   imports = [
     inputs.noctalia.homeModules.default
@@ -17,6 +31,7 @@
       pkgs.curl
       pkgs.fastfetch
       pkgs.file-roller
+      go-musicfox-latest
       # Avoid the GNOME Keyring prompt after fingerprint login. This stores
       # Chrome's local encryption key without OS keyring protection.
       (pkgs.google-chrome.override {
@@ -174,6 +189,11 @@
       "ctrl+alt+right" = "neighboring_window right";
       "ctrl+shift+enter" = "toggle_layout stack";
     };
+
+    # With shell integration, clicking the command being edited moves the
+    # text cursor to that position while preserving selection and link clicks.
+    mouseBindings."left click" =
+      "ungrabbed mouse_handle_click selection link prompt";
   };
 
   # Niri starts Noctalia with the graphical session. The upstream module
@@ -224,6 +244,10 @@
     configFile."autostart/org.fcitx.Fcitx5.desktop".text = ''
       [Desktop Entry]
       Hidden=true
+    '';
+    configFile."go-musicfox/config.toml".text = ''
+      [theme]
+      centerEverything = true
     '';
     configFile."fastfetch/config.jsonc".source =
       ./config/fastfetch/config.jsonc;
