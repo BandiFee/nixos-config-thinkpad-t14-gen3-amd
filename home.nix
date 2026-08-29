@@ -76,7 +76,7 @@ in
 
   programs.vim.enable = true;
 
-  # Simplified Chinese Pinyin. Home Manager starts Fcitx5 after the Niri
+  # Rime-based Chinese input. Home Manager starts Fcitx5 after the Niri
   # graphical session is ready, keeping its environment correct for Wayland.
   i18n.inputMethod = {
     enable = true;
@@ -86,7 +86,9 @@ in
       waylandFrontend = true;
 
       addons = [
-        pkgs.qt6Packages.fcitx5-chinese-addons
+        (pkgs.fcitx5-rime.override {
+          rimeDataPkgs = [ pkgs.rime-ice ];
+        })
         pkgs.fcitx5-mozc
         (pkgs.catppuccin-fcitx5.override { withRoundedCorners = true; })
       ];
@@ -97,20 +99,17 @@ in
         # Noctalia rewrites this theme from the current wallpaper palette.
         addons.classicui.globalSection.Theme = "noctalia-glass";
 
-        # Enable online candidates by default for Simplified Chinese Pinyin.
-        addons.pinyin.globalSection.CloudPinyinEnabled = "True";
-
         inputMethod = {
           GroupOrder."0" = "Default";
           "Groups/0" = {
             Name = "Default";
             "Default Layout" = "us";
-            DefaultIM = "pinyin";
+            DefaultIM = "rime";
           };
           "Groups/0/Items/0".Name = "keyboard-us";
           "Groups/0/Items/1" = {
             Layout = "us";
-            Name = "pinyin";
+            Name = "rime";
           };
           "Groups/0/Items/2" = {
             Layout = "us";
@@ -230,6 +229,12 @@ in
 
   xdg = {
     enable = true;
+
+    # Use Rime Ice's maintained Simplified Chinese dictionaries and schemas.
+    dataFile."fcitx5/rime/default.custom.yaml".text = ''
+      patch:
+        __include: rime_ice_suggestion:/
+    '';
 
     mimeApps = {
       enable = true;
