@@ -74,6 +74,7 @@ in
       pkgs.pavucontrol
       pkgs.playerctl
       pkgs.rustup
+      pkgs.splayer
       pkgs.typora
       pkgs.vscode
       pkgs.wget
