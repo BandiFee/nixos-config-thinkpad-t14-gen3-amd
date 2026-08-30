@@ -80,7 +80,8 @@ fun refresh_callback ()
       }
     else
       {
-        spinner.sprite.SetOpacity(0.24);
+        # Keep the background composition unchanged while interaction is active.
+        spinner.sprite.SetOpacity(fade);
         brand.sprite.SetOpacity(0);
       }
 
@@ -122,6 +123,17 @@ fun show_prompt (prompt)
   {
     dialog.panel_sprite.SetOpacity(1);
     dialog.prompt_image = Image.Text(prompt, 0.13, 0.23, 0.35, 1, "Inter 18", "center");
+    dialog.prompt_max_width = dialog.panel_width - Math.Int(80 * ui_scale);
+    if (dialog.prompt_image.GetWidth() > dialog.prompt_max_width)
+      {
+        dialog.prompt_scaled_height = Math.Int(
+          dialog.prompt_image.GetHeight() * dialog.prompt_max_width / dialog.prompt_image.GetWidth()
+        );
+        dialog.prompt_image = dialog.prompt_image.Scale(
+          dialog.prompt_max_width,
+          dialog.prompt_scaled_height
+        );
+      }
     dialog.prompt_sprite.SetImage(dialog.prompt_image);
     dialog.prompt_sprite.SetPosition(
       screen.x + Math.Int((screen.width - dialog.prompt_image.GetWidth()) / 2),
@@ -170,6 +182,17 @@ fun display_question_callback (prompt, entry)
     show_prompt(prompt);
 
     dialog.answer_image = Image.Text(entry, 0.24, 0.42, 0.60, 1, "Inter 17", "center");
+    dialog.answer_max_width = dialog.panel_width - Math.Int(80 * ui_scale);
+    if (dialog.answer_image.GetWidth() > dialog.answer_max_width)
+      {
+        dialog.answer_scaled_height = Math.Int(
+          dialog.answer_image.GetHeight() * dialog.answer_max_width / dialog.answer_image.GetWidth()
+        );
+        dialog.answer_image = dialog.answer_image.Scale(
+          dialog.answer_max_width,
+          dialog.answer_scaled_height
+        );
+      }
     dialog.answer_sprite.SetImage(dialog.answer_image);
     dialog.answer_sprite.SetPosition(
       screen.x + Math.Int((screen.width - dialog.answer_image.GetWidth()) / 2),

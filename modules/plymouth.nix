@@ -48,7 +48,7 @@ let
         background.svg > "$themeDir/background.png"
       # Keep the replacement horizontal logo at the original 360x101 canvas.
       install -m444 brand-logo.png "$themeDir/brand-logo.png"
-      rsvg-convert --width 620 --height 180 \
+      rsvg-convert --width 760 --height 180 \
         dialog-panel.svg > "$themeDir/dialog-panel.png"
 
       for index in $(seq 0 71); do
