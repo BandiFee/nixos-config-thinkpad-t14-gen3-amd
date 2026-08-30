@@ -89,6 +89,7 @@ in
       pkgs.micromamba
       pkgs.mpv
       pkgs.nautilus
+      pkgs.obs-studio
       pkgs.pavucontrol
       pkgs.playerctl
       qq-xwayland-with-working-source
