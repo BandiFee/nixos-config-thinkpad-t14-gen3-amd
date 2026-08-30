@@ -58,6 +58,7 @@ in
       pkgs.dotnet-sdk_10
       pkgs.fastfetch
       pkgs.file-roller
+      pkgs.gcc
       go-musicfox-latest
       pkgs.jetbrains.pycharm
       pkgs.jetbrains.rust-rover
