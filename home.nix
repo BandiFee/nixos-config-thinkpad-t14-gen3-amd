@@ -122,6 +122,31 @@ in
 
   programs.vim.enable = true;
 
+  # Terminal file manager. The Fish integration provides `y`, which returns
+  # the shell to Yazi's current directory when Yazi exits.
+  programs.yazi = {
+    enable = true;
+    enableFishIntegration = true;
+    shellWrapperName = "y";
+
+    settings.mgr = {
+      # Give the current directory and preview more room than the parent pane.
+      ratio = [
+        1
+        3
+        4
+      ];
+      sort_by = "natural";
+      sort_sensitive = false;
+      sort_reverse = false;
+      sort_dir_first = true;
+      linemode = "size";
+      show_hidden = false;
+      show_symlink = true;
+      scrolloff = 5;
+    };
+  };
+
   # Rime-based Chinese input. Home Manager starts Fcitx5 after the Niri
   # graphical session is ready, keeping its environment correct for Wayland.
   i18n.inputMethod = {

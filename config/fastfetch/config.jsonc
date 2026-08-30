@@ -4,8 +4,8 @@
     "type": "kitty-direct",
     "source": "~/.config/fastfetch/logo.png",
     "position": "left",
-    "width": 34,
-    "height": 17,
+    "width": 36,
+    "height": 18,
     "padding": {
       "top": 0,
       "left": 1,
@@ -86,6 +86,12 @@
       "type": "terminal",
       "key": "Terminal",
       "keyIcon": ""
+    },
+    {
+      "type": "command",
+      "key": "Yazi",
+      "keyIcon": "󰇥",
+      "text": "yazi --version | cut -d ' ' -f 2"
     },
     {
       "type": "localip",
