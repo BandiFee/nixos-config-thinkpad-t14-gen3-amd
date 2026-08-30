@@ -73,6 +73,7 @@ in
       pkgs.curl
       pkgs.dotnet-sdk_10
       pkgs.fastfetch
+      pkgs.ffmpeg
       pkgs.file-roller
       pkgs.gcc
       go-musicfox-latest
