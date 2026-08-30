@@ -143,6 +143,12 @@
 
   zramSwap.enable = true;
 
+  # Verify Btrfs checksums monthly and monitor drive health continuously.
+  # autoScrub deduplicates the root, home and nix subvolumes because they
+  # reside on the same encrypted Btrfs filesystem.
+  services.btrfs.autoScrub.enable = true;
+  services.smartd.enable = true;
+
   # ============================================================
   # Fingerprint reader
   # ============================================================
@@ -282,6 +288,8 @@
     vulkan-tools
     mesa-demos
     libva-utils
+    smartmontools
+    nvme-cli
   ];
 
   # ============================================================
