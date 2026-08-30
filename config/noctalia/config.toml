@@ -47,12 +47,35 @@ app_grid = false
 sort_by_usage = true
 provider_prefix = "/"
 
+# Open the video wallpaper picker from the launcher's `/` provider overview.
+[shell.launcher.dmenu.entry.video-wallpaper]
+command = "noctalia msg panel-open noctalia/mpvpaper:picker >/dev/null"
+label = "Video Wallpaper"
+prefix = "video"
+glyph = "movie"
+global = false
+
 [wallpaper]
 enabled = true
 fill_mode = "crop"
 transition = ["fade", "wipe", "zoom"]
 transition_duration = 900
 edge_smoothness = 0.3
+
+# The official video-wallpaper plugin integrates mpvpaper with Noctalia's
+# wallpaper surface, picker, persistence and wallpaper-derived theme colors.
+[plugins]
+enabled = ["noctalia/mpvpaper"]
+auto_update = "official"
+
+[plugin_settings."noctalia/mpvpaper"]
+video_directory = "~/Videos/Wallpapers"
+picker_placement = "floating"
+picker_position = "center"
+mute = true
+hardware_decode = true
+auto_pause = true
+extract_last_frame = true
 
 [theme]
 mode = "dark"

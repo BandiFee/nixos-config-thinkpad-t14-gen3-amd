@@ -88,6 +88,8 @@ in
       })
       pkgs.micromamba
       pkgs.mpv
+      # Video wallpaper renderer used by Noctalia's official mpvpaper plugin.
+      pkgs.mpvpaper
       pkgs.nautilus
       pkgs.obs-studio
       pkgs.pavucontrol
