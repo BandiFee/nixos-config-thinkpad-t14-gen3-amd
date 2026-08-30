@@ -27,6 +27,16 @@ let
         ];
       });
 
+  # The QQ URL in the pinned nixpkgs revision was removed from Tencent's CDN.
+  # Keep using the nixpkgs wrapper, but point it at a newer official package.
+  qq-with-working-source = pkgs.qq.overrideAttrs (_oldAttrs: {
+    version = "3.2.32-2026-07-30";
+    src = pkgs.fetchurl {
+      url = "https://qqdl.gtimg.cn/qqfile/QQNT/9.9.33/release/c97651b2/QQ_3.2.32_260730_amd64_01.deb";
+      hash = "sha256-ga4rhULvUxH8cuz1PJpSOSPINFacew2lLgv0Nguctfk=";
+    };
+  });
+
   # Rider already exposes its X11 libraries to child processes. Add fontconfig
   # as well so Avalonia/SkiaSharp applications launched by Rider can load their
   # bundled native renderer without setting LD_LIBRARY_PATH globally.
@@ -73,10 +83,12 @@ in
       pkgs.nautilus
       pkgs.pavucontrol
       pkgs.playerctl
+      qq-with-working-source
       pkgs.rustup
       pkgs.splayer
       pkgs.typora
       pkgs.vscode
+      pkgs.wechat
       pkgs.wget
       pkgs.wl-clipboard
       pkgs.wl-mirror
