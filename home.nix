@@ -43,6 +43,18 @@ let
         };
       });
 
+  # WeChat is an XWayland Qt application and does not use the native Wayland
+  # input-method path. Select its bundled Fcitx platform input context without
+  # forcing the same choice on native Wayland Qt applications.
+  wechat-with-fcitx = pkgs.symlinkJoin {
+    name = "wechat-with-fcitx";
+    paths = [ pkgs.wechat ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/wechat --set QT_IM_MODULE fcitx
+    '';
+  };
+
   # Rider already exposes its X11 libraries to child processes. Add fontconfig
   # as well so Avalonia/SkiaSharp applications launched by Rider can load their
   # bundled native renderer without setting LD_LIBRARY_PATH globally.
@@ -99,7 +111,7 @@ in
       pkgs.splayer
       pkgs.typora
       pkgs.vscode
-      pkgs.wechat
+      wechat-with-fcitx
       pkgs.wget
       pkgs.wl-clipboard
       pkgs.wl-mirror
