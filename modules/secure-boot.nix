@@ -6,9 +6,9 @@
   boot.loader.systemd-boot = {
     enable = lib.mkForce false;
     configurationLimit = 10;
-    # 80x50 is closer to the 32px Linux console font than the oversized 80x25
-    # mode, while remaining a firmware-provided text mode.
-    consoleMode = "1";
+    # Let systemd-boot choose a readable firmware console mode while making
+    # better use of the display width for long generation labels.
+    consoleMode = "auto";
   };
 
   # Boot the newest generation immediately; hold Space to show the menu.
