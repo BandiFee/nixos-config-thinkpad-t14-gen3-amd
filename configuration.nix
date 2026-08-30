@@ -273,7 +273,7 @@
   # ============================================================
 
   environment.systemPackages = with pkgs; [
-    # X11 compatibility
+    # Niri discovers this package and starts XWayland on demand.
     xwayland-satellite
 
     # Hardware and graphics diagnostics available system-wide

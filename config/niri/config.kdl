@@ -135,9 +135,6 @@ animations {
 // always correct. The --daemon form returns after initialization.
 spawn-at-startup "noctalia" "--daemon"
 
-// Niri is Wayland-only; this bridge keeps Steam and legacy X11 apps working.
-spawn-at-startup "xwayland-satellite"
-
 window-rule {
     geometry-corner-radius 12
     clip-to-geometry true
