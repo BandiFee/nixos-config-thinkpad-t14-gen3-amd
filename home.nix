@@ -87,6 +87,7 @@ in
         commandLineArgs = "--password-store=basic";
       })
       pkgs.micromamba
+      pkgs.mpv
       pkgs.nautilus
       pkgs.pavucontrol
       pkgs.playerctl
