@@ -83,14 +83,19 @@ in
       pkgs.claude-code
       pkgs.codex
       pkgs.curl
+      pkgs.deadnix
       pkgs.dotnet-sdk_10
       pkgs.fastfetch
+      pkgs.fd
       pkgs.ffmpeg
       pkgs.file-roller
       pkgs.gcc
       go-musicfox-latest
+      pkgs.hyperfine
       pkgs.jetbrains.pycharm
       pkgs.jetbrains.rust-rover
+      pkgs.jq
+      pkgs.just
       pkgs.libreoffice
       rider-with-avalonia-libs
       # Avoid the GNOME Keyring prompt after fingerprint login. This stores
@@ -103,18 +108,27 @@ in
       # Video wallpaper renderer used by Noctalia's official mpvpaper plugin.
       pkgs.mpvpaper
       pkgs.nautilus
+      pkgs.nix-output-monitor
+      pkgs.nix-tree
       pkgs.obs-studio
+      pkgs.p7zip
       pkgs.pavucontrol
       pkgs.playerctl
       qq-xwayland-with-working-source
+      pkgs.ripgrep
       pkgs.rustup
+      pkgs.shellcheck
+      pkgs.shfmt
       pkgs.splayer
+      pkgs.statix
       pkgs.typora
+      pkgs.unzip
       pkgs.vscode
       wechat-with-fcitx
       pkgs.wget
       pkgs.wl-clipboard
       pkgs.wl-mirror
+      pkgs.zip
     ];
 
     pointerCursor = {
@@ -137,13 +151,55 @@ in
 
   programs.home-manager.enable = true;
 
+  programs.bat.enable = true;
+
   programs.btop.enable = true;
+
+  programs.delta = {
+    enable = true;
+    enableGitIntegration = true;
+  };
+
+  programs.direnv = {
+    enable = true;
+    enableFishIntegration = true;
+    nix-direnv.enable = true;
+  };
+
+  programs.eza = {
+    enable = true;
+
+    # Keep the traditional ls command and its existing behavior available.
+    enableFishIntegration = false;
+  };
 
   programs.firefox.enable = true;
 
+  programs.fzf = {
+    enable = true;
+    enableFishIntegration = true;
+  };
+
+  programs.gh.enable = true;
+
   programs.git.enable = true;
 
+  programs.lazygit = {
+    enable = true;
+    enableFishIntegration = true;
+  };
+
+  programs.nh = {
+    enable = true;
+    osFlake = "/etc/nixos";
+  };
+
   programs.vim.enable = true;
+
+  programs.zoxide = {
+    enable = true;
+    enableFishIntegration = true;
+  };
 
   # Terminal file manager. The Fish integration provides `y`, which returns
   # the shell to Yazi's current directory when Yazi exits.

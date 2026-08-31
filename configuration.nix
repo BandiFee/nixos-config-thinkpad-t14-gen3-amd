@@ -290,6 +290,17 @@
     libva-utils
     smartmontools
     nvme-cli
+
+    # Disk partitioning and common filesystem administration
+    parted
+    gptfdisk
+    btrfs-progs
+    e2fsprogs
+    xfsprogs
+    f2fs-tools
+    dosfstools
+    exfatprogs
+    ntfs3g
   ];
 
   # ============================================================
