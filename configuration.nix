@@ -331,10 +331,6 @@
   # Applications
   # ============================================================
 
-  # Installs KDE Partition Manager together with KPMCore's D-Bus service and
-  # Polkit actions required for privileged disk operations.
-  programs.partition-manager.enable = true;
-
   environment.systemPackages = with pkgs; [
     # Niri discovers this package and starts XWayland on demand.
     xwayland-satellite
@@ -350,6 +346,7 @@
 
     # Disk partitioning and common filesystem administration
     gparted
+    gnome-disk-utility
     parted
     gptfdisk
     btrfs-progs
