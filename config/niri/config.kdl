@@ -140,6 +140,16 @@ window-rule {
     clip-to-geometry true
 }
 
+// GParted still uses GTK 3 menus that can be implemented as subsurfaces.
+// Let them extend beyond the window geometry instead of clipping the menu,
+// and keep this safety-critical utility fully opaque and easy to read.
+window-rule {
+    match app-id=r#"^(GParted|gparted|gpartedbin)$"#
+    clip-to-geometry false
+    opacity 1.0
+    background-effect { blur false; }
+}
+
 window-rule {
     match app-id="dev.noctalia.Noctalia"
     open-floating true

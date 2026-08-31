@@ -56,6 +56,59 @@
         meta = prev.niri.meta;
       };
 
+      # GParted's upstream launcher only preserves X11 access across pkexec.
+      # Pass the current Wayland socket explicitly so GTK can avoid
+      # xwayland-satellite's nested-popup limitations, with X11 as fallback.
+      gparted = prev.gparted.overrideAttrs (old: {
+        patches = (old.patches or [ ]) ++ [
+          (prev.writeText "gparted-native-wayland.patch"
+            (builtins.replaceStrings [ "\\t" "\\s" ] [ "\t" " " ] ''
+              diff --git a/gparted.in b/gparted.in
+              index b310931..8c94eb1 100755
+              --- a/gparted.in
+              +++ b/gparted.in
+              @@ -34,6 +34,22 @@ if pidof gpartedbin 1> /dev/null; then
+              \s\texit 1
+              \sfi
+              \s
+              +# pkexec deliberately starts with a restricted environment and does not pass
+              +# the Wayland socket variables.  Restore only those two values from the
+              +# authenticated launcher invocation.  Prefer Wayland while retaining X11 as
+              +# a fallback for sessions without a usable Wayland socket.
+              +if test "x`id -u`" = "x0" && \
+              +   test "x''${1-}" = "x--nixos-wayland-display"; then
+              +\tif test "$#" -lt 3; then
+              +\t\techo "Missing Wayland display arguments." >&2
+              +\t\texit 1
+              +\tfi
+              +\texport XDG_RUNTIME_DIR="$2"
+              +\texport WAYLAND_DISPLAY="$3"
+              +\texport GDK_BACKEND="wayland,x11"
+              +\tshift 3
+              +fi
+              +
+              \s#
+              \s#  Define base command for executing GParted
+              \s#
+              @@ -69,7 +83,13 @@ if test "x`id -u`" != "x0"; then
+              \s\t#
+              \s\t#  Run gparted as root.
+              \s\t#
+              -\t@gksuprog@ '@bindir@/gparted' "$@"
+              +\tif test -n "$WAYLAND_DISPLAY" && test -n "$XDG_RUNTIME_DIR"; then
+              +\t\t@gksuprog@ '@bindir@/gparted' \
+              +\t\t\t--nixos-wayland-display "$XDG_RUNTIME_DIR" "$WAYLAND_DISPLAY" \
+              +\t\t\t"$@"
+              +\telse
+              +\t\t@gksuprog@ '@bindir@/gparted' "$@"
+              +\tfi
+              \s\tstatus=$?
+              \s
+              \s\t#
+            ''))
+        ];
+      });
+
       tuigreet = prev.tuigreet.overrideAttrs (old: {
         patches = (old.patches or [ ]) ++ [
           ./patches/tuigreet-center-time.patch
@@ -296,6 +349,7 @@
     nvme-cli
 
     # Disk partitioning and common filesystem administration
+    gparted
     parted
     gptfdisk
     btrfs-progs
