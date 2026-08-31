@@ -1,0 +1,62 @@
+diff --git a/src/rime/gear/ascii_composer.cc b/src/rime/gear/ascii_composer.cc
+index c8b8a19..fd0a4f9 100644
+--- a/src/rime/gear/ascii_composer.cc
++++ b/src/rime/gear/ascii_composer.cc
+@@ -4,6 +4,9 @@
+ //
+ // 2011-12-18 GONG Chen <chen.sst@gmail.com>
+ //
++#include <fstream>
++#include <glob.h>
++
+ #include <rime/common.h>
+ #include <rime/composition.h>
+ #include <rime/config.h>
+@@ -49,6 +52,26 @@ static void load_bindings(const an<ConfigMap>& src,
+   }
+ }
+ 
++static bool physical_caps_lock_is_off() {
++  glob_t paths = {};
++  if (glob("/sys/class/leds/*::capslock/brightness", GLOB_NOSORT, NULL,
++           &paths) != 0) {
++    return false;
++  }
++  bool found = false;
++  bool caps_on = false;
++  for (size_t i = 0; i < paths.gl_pathc; ++i) {
++    std::ifstream brightness(paths.gl_pathv[i]);
++    int value = 0;
++    if (brightness >> value) {
++      found = true;
++      caps_on = caps_on || value != 0;
++    }
++  }
++  globfree(&paths);
++  return found && !caps_on;
++}
++
+ AsciiComposer::AsciiComposer(const Ticket& ticket) : Processor(ticket) {
+   LoadConfig(ticket.schema);
+ }
+@@ -137,6 +160,20 @@ ProcessResult AsciiComposer::ProcessKeyEvent(const KeyEvent& key_event) {
+ 
+ ProcessResult AsciiComposer::ProcessCapsLock(const KeyEvent& key_event) {
+   int ch = key_event.keycode();
++  // Caps Lock may be turned off while Rime has no focused input context, so
++  // the matching Caps_Lock event never reaches this composer.  If this
++  // session entered ASCII mode through Caps Lock, reconcile it with the
++  // physical lock state before handling the next key.  The Wayland input
++  // method protocol does not reliably carry the CapsLock modifier, so read
++  // the kernel's keyboard LED state instead.
++  if (ch != XK_Caps_Lock && good_old_caps_lock_ && toggle_with_caps_ &&
++      physical_caps_lock_is_off()) {
++    toggle_with_caps_ = false;
++    Context* ctx = engine_->context();
++    if (ctx->get_option("ascii_mode")) {
++      SwitchAsciiMode(false, caps_lock_switch_style_);
++    }
++  }
+   if (ch == XK_Caps_Lock) {
+     if (!key_event.release()) {
+       shift_key_pressed_ = ctrl_key_pressed_ = alt_key_pressed_ =

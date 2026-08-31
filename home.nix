@@ -55,6 +55,41 @@ let
     '';
   };
 
+  librime-with-caps-lock-resync = pkgs.librime.overrideAttrs (oldAttrs: {
+    patches = (oldAttrs.patches or [ ]) ++ [
+      ./patches/librime-resync-caps-lock.patch
+    ];
+  });
+
+  fcitx5-rime-with-ice = pkgs.fcitx5-rime.override {
+    librime = librime-with-caps-lock-resync;
+    rimeDataPkgs = [ pkgs.rime-ice ];
+  };
+
+  # Rime compares source mtimes before rebuilding schemas. Files symlinked
+  # directly from the Nix store have an epoch mtime, so keep this particular
+  # override mutable and compile it before Fcitx starts whenever it changes.
+  rime-ice-custom = ./config/rime/rime_ice.custom.yaml;
+
+  deploy-rime-ice = pkgs.writeShellScript "deploy-rime-ice" ''
+    set -eu
+
+    rime_dir=/home/bandifee/.local/share/fcitx5/rime
+    custom_file="$rime_dir/rime_ice.custom.yaml"
+
+    if ! ${pkgs.diffutils}/bin/cmp -s ${rime-ice-custom} "$custom_file" \
+      || [ ! -e "$rime_dir/build/rime_ice.schema.yaml" ]; then
+      ${pkgs.coreutils}/bin/mkdir -p "$rime_dir"
+      ${pkgs.coreutils}/bin/cp --remove-destination \
+        ${rime-ice-custom} "$custom_file"
+      ${librime-with-caps-lock-resync}/bin/rime_deployer --compile \
+        ${fcitx5-rime-with-ice}/share/rime-data/rime_ice.schema.yaml \
+        "$rime_dir" \
+        ${fcitx5-rime-with-ice}/share/rime-data \
+        "$rime_dir/build"
+    fi
+  '';
+
   # Rider already exposes its X11 libraries to child processes. Add fontconfig
   # as well so Avalonia/SkiaSharp applications launched by Rider can load their
   # bundled native renderer without setting LD_LIBRARY_PATH globally.
@@ -237,15 +272,16 @@ in
       waylandFrontend = true;
 
       addons = [
-        (pkgs.fcitx5-rime.override {
-          rimeDataPkgs = [ pkgs.rime-ice ];
-        })
+        fcitx5-rime-with-ice
         pkgs.fcitx5-mozc
         (pkgs.catppuccin-fcitx5.override { withRoundedCorners = true; })
       ];
 
       settings = {
         globalOptions."Hotkey/TriggerKeys"."0" = "Super+space";
+        # Let Rime handle a bare left Shift so commit_code can preserve the
+        # raw composition instead of Fcitx temporarily deactivating Rime.
+        globalOptions."Hotkey/AltTriggerKeys" = { };
 
         # Noctalia rewrites this theme from the current wallpaper palette.
         addons.classicui.globalSection.Theme = "noctalia-glass";
@@ -387,6 +423,8 @@ in
 
     Install.WantedBy = [ "graphical-session.target" ];
   };
+
+  systemd.user.services.fcitx5-daemon.Service.ExecStartPre = deploy-rime-ice;
 
   xdg = {
     enable = true;
