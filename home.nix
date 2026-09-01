@@ -27,6 +27,19 @@ let
         ];
       });
 
+  # Codex's arboard path can miss image files copied by Nautilus on Wayland.
+  # Fall back to wl-paste for image data and the two file-list MIME types
+  # Nautilus commonly publishes, while leaving the native path preferred.
+  codex-with-wayland-clipboard-fallback = pkgs.codex.overrideAttrs (oldAttrs: {
+    patches = (oldAttrs.patches or [ ]) ++ [
+      ./patches/codex-wayland-clipboard-fallback.patch
+    ];
+    postPatch = (oldAttrs.postPatch or "") + ''
+      substituteInPlace tui/src/clipboard_paste.rs \
+        --replace-fail '@wl-paste@' '${pkgs.wl-clipboard}/bin/wl-paste'
+    '';
+  });
+
   # The QQ URL in the pinned nixpkgs revision was removed from Tencent's CDN.
   # Keep using the nixpkgs wrapper, but point it at a newer official package.
   # Force QQ onto XWayland so it shares one reliable clipboard path with WeChat;
@@ -116,7 +129,7 @@ in
     packages = [
       pkgs.brightnessctl
       pkgs.claude-code
-      pkgs.codex
+      codex-with-wayland-clipboard-fallback
       pkgs.curl
       pkgs.deadnix
       pkgs.dotnet-sdk_10

@@ -1,0 +1,225 @@
+--- a/tui/src/clipboard_paste.rs
++++ b/tui/src/clipboard_paste.rs
+@@ -1,5 +1,7 @@
+ use std::path::Path;
+ use std::path::PathBuf;
++#[cfg(target_os = "linux")]
++use std::process::Command;
+ use tempfile::Builder;
+ 
+ #[derive(Debug, Clone)]
+@@ -87,17 +89,20 @@
+         image::DynamicImage::ImageRgba8(rgba_img)
+     };
+ 
+-    let mut png: Vec<u8> = Vec::new();
+-    {
+-        let span =
+-            tracing::debug_span!("encode_image", byte_length = tracing::field::Empty).entered();
+-        let mut cursor = std::io::Cursor::new(&mut png);
+-        dyn_img
+-            .write_to(&mut cursor, image::ImageFormat::Png)
+-            .map_err(|e| PasteImageError::EncodeFailed(e.to_string()))?;
+-        span.record("byte_length", png.len());
+-    }
++    encode_dynamic_image_as_png(dyn_img)
++}
+ 
++#[cfg(not(target_os = "android"))]
++fn encode_dynamic_image_as_png(
++    dyn_img: image::DynamicImage,
++) -> Result<(Vec<u8>, PastedImageInfo), PasteImageError> {
++    let mut png: Vec<u8> = Vec::new();
++    let span = tracing::debug_span!("encode_image", byte_length = tracing::field::Empty).entered();
++    let mut cursor = std::io::Cursor::new(&mut png);
++    dyn_img
++        .write_to(&mut cursor, image::ImageFormat::Png)
++        .map_err(|e| PasteImageError::EncodeFailed(e.to_string()))?;
++    span.record("byte_length", png.len());
+     Ok((
+         png,
+         PastedImageInfo {
+@@ -121,24 +126,13 @@
+ pub fn paste_image_to_temp_png() -> Result<(PathBuf, PastedImageInfo), PasteImageError> {
+     // First attempt: read image from system clipboard via arboard (native paths or image data).
+     match paste_image_as_png() {
+-        Ok((png, info)) => {
+-            // Create a unique temporary file with a .png suffix to avoid collisions.
+-            let tmp = Builder::new()
+-                .prefix("codex-clipboard-")
+-                .suffix(".png")
+-                .tempfile()
+-                .map_err(|e| PasteImageError::IoError(e.to_string()))?;
+-            std::fs::write(tmp.path(), &png)
+-                .map_err(|e| PasteImageError::IoError(e.to_string()))?;
+-            // Persist the file (so it remains after the handle is dropped) and return its PathBuf.
+-            let (_file, path) = tmp
+-                .keep()
+-                .map_err(|e| PasteImageError::IoError(e.error.to_string()))?;
+-            Ok((path, info))
+-        }
++        Ok((png, info)) => write_temp_png(&png, info),
+         Err(e) => {
+             #[cfg(target_os = "linux")]
+             {
++                if let Ok((png, info)) = try_wayland_clipboard_fallback(&e) {
++                    return write_temp_png(&png, info);
++                }
+                 try_wsl_clipboard_fallback(&e).or(Err(e))
+             }
+             #[cfg(not(target_os = "linux"))]
+@@ -149,6 +143,111 @@
+     }
+ }
+ 
++#[cfg(not(target_os = "android"))]
++fn write_temp_png(
++    png: &[u8],
++    info: PastedImageInfo,
++) -> Result<(PathBuf, PastedImageInfo), PasteImageError> {
++    let tmp = Builder::new()
++        .prefix("codex-clipboard-")
++        .suffix(".png")
++        .tempfile()
++        .map_err(|e| PasteImageError::IoError(e.to_string()))?;
++    std::fs::write(tmp.path(), png).map_err(|e| PasteImageError::IoError(e.to_string()))?;
++    let (_file, path) = tmp
++        .keep()
++        .map_err(|e| PasteImageError::IoError(e.error.to_string()))?;
++    Ok((path, info))
++}
++
++/// Attempt a native Wayland fallback when arboard cannot read the clipboard.
++///
++/// Nautilus publishes copied files as URI lists rather than image pixels. Some
++/// Wayland clipboard managers also replay only one of the advertised MIME
++/// types, so try image/png and both common Nautilus file-list formats.
++#[cfg(target_os = "linux")]
++fn try_wayland_clipboard_fallback(
++    error: &PasteImageError,
++) -> Result<(Vec<u8>, PastedImageInfo), PasteImageError> {
++    use PasteImageError::ClipboardUnavailable;
++    use PasteImageError::NoImage;
++
++    if std::env::var_os("WAYLAND_DISPLAY").is_none()
++        || !matches!(error, ClipboardUnavailable(_) | NoImage(_))
++    {
++        return Err(error.clone());
++    }
++
++    tracing::debug!("attempting wl-paste clipboard fallback");
++    if let Some(png) = read_wayland_clipboard("image/png")
++        && let Ok(img) = image::load_from_memory_with_format(&png, image::ImageFormat::Png)
++    {
++        tracing::debug!(
++            "wl-paste opened image/png: {}x{}",
++            img.width(),
++            img.height()
++        );
++        return Ok((
++            png,
++            PastedImageInfo {
++                width: img.width(),
++                height: img.height(),
++                encoded_format: EncodedImageFormat::Png,
++            },
++        ));
++    }
++
++    for mime in ["text/uri-list", "x-special/gnome-copied-files"] {
++        let Some(contents) = read_wayland_clipboard(mime) else {
++            continue;
++        };
++        for path in clipboard_file_paths(&contents, mime == "x-special/gnome-copied-files") {
++            let Ok(img) = image::open(&path) else {
++                continue;
++            };
++            tracing::debug!(
++                "wl-paste opened clipboard image file {}: {}x{}",
++                path.display(),
++                img.width(),
++                img.height()
++            );
++            return encode_dynamic_image_as_png(img);
++        }
++    }
++
++    Err(error.clone())
++}
++
++#[cfg(target_os = "linux")]
++fn read_wayland_clipboard(mime: &str) -> Option<Vec<u8>> {
++    let output = Command::new("@wl-paste@")
++        .args(["--type", mime])
++        .output()
++        .ok()?;
++    if !output.status.success() || output.stdout.is_empty() {
++        return None;
++    }
++    Some(output.stdout)
++}
++
++#[cfg(target_os = "linux")]
++fn clipboard_file_paths(contents: &[u8], gnome_copied_files: bool) -> Vec<PathBuf> {
++    String::from_utf8_lossy(contents)
++        .lines()
++        .map(str::trim)
++        .enumerate()
++        .filter_map(|(index, line)| {
++            if line.is_empty()
++                || line.starts_with('#')
++                || (gnome_copied_files && index == 0 && matches!(line, "copy" | "cut"))
++            {
++                return None;
++            }
++            normalize_pasted_path(line)
++        })
++        .collect()
++}
++
+ /// Attempt WSL fallback for clipboard image paste.
+ ///
+ /// If clipboard is unavailable (common under WSL because arboard cannot access
+@@ -469,6 +568,42 @@
+         );
+     }
+ 
++    #[cfg(target_os = "linux")]
++    #[test]
++    fn parses_wayland_uri_list() {
++        let input = b"# copied files\r\nfile:///tmp/example%20one.png\r\nfile:///tmp/two.jpg\r\n";
++        assert_eq!(
++            clipboard_file_paths(input, false),
++            vec![
++                PathBuf::from("/tmp/example one.png"),
++                PathBuf::from("/tmp/two.jpg")
++            ]
++        );
++    }
++
++    #[cfg(target_os = "linux")]
++    #[test]
++    fn parses_gnome_copied_files() {
++        let input = b"copy\nfile:///tmp/example%20one.png\nfile:///tmp/two.webp\n";
++        assert_eq!(
++            clipboard_file_paths(input, true),
++            vec![
++                PathBuf::from("/tmp/example one.png"),
++                PathBuf::from("/tmp/two.webp")
++            ]
++        );
++    }
++
++    #[cfg(target_os = "linux")]
++    #[test]
++    fn skips_gnome_cut_marker() {
++        let input = b"cut\nfile:///tmp/example.gif\n";
++        assert_eq!(
++            clipboard_file_paths(input, true),
++            vec![PathBuf::from("/tmp/example.gif")]
++        );
++    }
++
+     #[test]
+     fn normalize_single_quoted_windows_path() {
+         let input = r"'C:\\Users\\Alice\\My File.jpeg'";
