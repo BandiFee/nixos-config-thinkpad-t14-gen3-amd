@@ -114,6 +114,7 @@ let
           noctalia-color-role-alpha-patch
           noctalia-lockscreen-typography-patch
           ./patches/noctalia-hover-primary-container.patch
+          ./patches/noctalia-fingerprint-release-on-abort.patch
         ];
       });
 

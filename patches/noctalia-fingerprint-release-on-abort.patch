@@ -1,0 +1,32 @@
+Release the fprintd device even after an aborted verify.
+
+A device-level error during verify (fprintd emits verify-disconnected, e.g.
+"Unexpected result from device 114" when the sensor is not ready yet right
+after boot) sets m_abort. stop() then dropped the proxy without calling
+Release, so fprintd kept the device claimed for the whole life of the shell
+process. Every later Claim -- including pam_fprintd's from sudo, su and
+polkit -- failed with "Device was already claimed", and those PAM stacks
+silently fell through to the password prompt.
+
+Release is best-effort already: releaseDevice() swallows sdbus errors, so a
+genuinely disconnected device costs nothing beyond a failed call.
+
+--- a/src/auth/fingerprint_authenticator.cpp
++++ b/src/auth/fingerprint_authenticator.cpp
+@@ -116,11 +116,11 @@
+   m_active = false;
+   m_verifying = false;
+   m_claiming = false;
+-  if (!m_abort) {
+-    releaseDevice();
+-  } else {
+-    m_device.reset();
+-  }
++  // Always hand the device back; releaseDevice resets the proxy itself.
++  // Skipping Release on the abort path leaks the claim for the life of this
++  // process and locks every other fprintd consumer out of the sensor --
++  // pam_fprintd for sudo, su and polkit included.
++  releaseDevice();
+ }
+ 
+ bool FingerprintAuthenticator::createDeviceProxy() {
