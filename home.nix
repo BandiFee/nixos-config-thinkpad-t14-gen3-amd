@@ -144,6 +144,8 @@ in
       # Video wallpaper renderer used by Noctalia's official mpvpaper plugin.
       pkgs.mpvpaper
       pkgs.nautilus
+      pkgs.nixd
+      pkgs.nixfmt
       pkgs.nix-output-monitor
       pkgs.nix-tree
       pkgs.obs-studio
