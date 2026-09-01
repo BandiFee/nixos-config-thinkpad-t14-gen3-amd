@@ -1,4 +1,9 @@
-{ inputs, pkgs, ... }:
+{
+  inputs,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   go-musicfox-latest = pkgs.go-musicfox.overrideAttrs (_oldAttrs: rec {
@@ -19,11 +24,96 @@ let
     ];
   });
 
+  noctalia-color-role-alpha-patch = pkgs.writeText "noctalia-color-role-alpha.patch" ''
+    diff --git a/src/config/config_types.cpp b/src/config/config_types.cpp
+    --- a/src/config/config_types.cpp
+    +++ b/src/config/config_types.cpp
+    @@ -45,3 +45,21 @@
+    -    if (auto role = colorRoleFromToken(trimmed)) {
+    -      return colorSpecFromRole(*role);
+    +
+    +    std::string_view roleToken = trimmed;
+    +    float alpha = 1.0F;
+    +    if (const auto slash = roleToken.find('/'); slash != std::string_view::npos) {
+    +      if (roleToken.find('/', slash + 1) != std::string_view::npos) {
+    +        throw std::runtime_error(colorSpecError(raw, context));
+    +      }
+    +      const std::string_view alphaToken = roleToken.substr(slash + 1);
+    +      roleToken = roleToken.substr(0, slash);
+    +      char trailing = '\0';
+    +      if (alphaToken.empty()
+    +          || std::sscanf(std::string(alphaToken).c_str(), "%f%c", &alpha, &trailing) != 1
+    +          || alpha < 0.0F
+    +          || alpha > 1.0F) {
+    +        throw std::runtime_error(colorSpecError(raw, context));
+    +      }
+    +    }
+    +
+    +    if (auto role = colorRoleFromToken(roleToken)) {
+    +      return colorSpecFromRole(*role, alpha);
+         }
+    @@ -579,1 +597,5 @@
+    -    return std::string(colorRoleToken(*spec.role));
+    +    std::string result(colorRoleToken(*spec.role));
+    +    if (spec.alpha < 0.999F) {
+    +      result += "/" + std::to_string(spec.alpha);
+    +    }
+    +    return result;
+  '';
+
+  noctalia-lockscreen-typography-patch = pkgs.writeText "noctalia-lockscreen-typography.patch" ''
+    diff --git a/src/shell/desktop/widgets/desktop_label_widget.cpp b/src/shell/desktop/widgets/desktop_label_widget.cpp
+    --- a/src/shell/desktop/widgets/desktop_label_widget.cpp
+    +++ b/src/shell/desktop/widgets/desktop_label_widget.cpp
+    @@ -33,7 +33,7 @@
+           .out = &m_titleLabel,
+           .text = m_title,
+           .fontSize = titleFontSize(contentScale()),
+    -      .fontWeight = FontWeight::Bold,
+    +      .fontWeight = FontWeight::Medium,
+           .color = m_color,
+           .maxLines = 3,
+           .textAlign = TextAlign::Start,
+    diff --git a/src/shell/desktop/widgets/desktop_clock_widget.cpp b/src/shell/desktop/widgets/desktop_clock_widget.cpp
+    --- a/src/shell/desktop/widgets/desktop_clock_widget.cpp
+    +++ b/src/shell/desktop/widgets/desktop_clock_widget.cpp
+    @@ -219,7 +219,7 @@
+       auto label = ui::label({
+           .out = &m_label,
+           .fontSize = clockFontSize(contentScale()),
+    -      .fontWeight = FontWeight::Bold,
+    +      .fontWeight = FontWeight::Light,
+           .color = m_color,
+       });
+       m_digitalRoot->addChild(std::move(label));
+    @@ -574,7 +574,7 @@
+         for (char digit = '0'; digit <= '9'; ++digit) {
+           const std::string glyph(1, digit);
+           const float advance =
+    -          renderer.measureText(glyph, fontSize, FontWeight::Bold, 0.0F, 0, TextAlign::Start, m_fontFamily).width;
+    +          renderer.measureText(glyph, fontSize, FontWeight::Light, 0.0F, 0, TextAlign::Start, m_fontFamily).width;
+           if (advance > widest) {
+             widest = advance;
+             m_widestDigit = digit;
+    @@ -597,7 +597,7 @@
+       m_stableSample = sample;
+
+       const float width =
+    -      renderer.measureText(sample, fontSize, FontWeight::Bold, 0.0F, 0, TextAlign::Start, m_fontFamily).width;
+    +      renderer.measureText(sample, fontSize, FontWeight::Light, 0.0F, 0, TextAlign::Start, m_fontFamily).width;
+       if (std::abs(width - m_stableWidth) > 0.5F) {
+         m_stableWidth = width;
+         m_label->setMinWidth(m_stableWidth);
+  '';
+
   noctalia-with-mpris-lyrics =
     inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs
       (oldAttrs: {
         patches = (oldAttrs.patches or [ ]) ++ [
           ./patches/noctalia-mpris-lyrics.patch
+          noctalia-color-role-alpha-patch
+          noctalia-lockscreen-typography-patch
+          ./patches/noctalia-hover-primary-container.patch
         ];
       });
 
@@ -139,7 +229,9 @@ in
       pkgs.file-roller
       pkgs.gcc
       go-musicfox-latest
+      pkgs.google-chrome
       pkgs.hyperfine
+      pkgs.inter
       pkgs.jetbrains.pycharm
       pkgs.jetbrains.rust-rover
       pkgs.jq
@@ -147,11 +239,6 @@ in
       pkgs.libreoffice
       pkgs.loupe
       rider-with-avalonia-libs
-      # Avoid the GNOME Keyring prompt after fingerprint login. This stores
-      # Chrome's local encryption key without OS keyring protection.
-      (pkgs.google-chrome.override {
-        commandLineArgs = "--password-store=basic";
-      })
       pkgs.micromamba
       pkgs.mpv
       # Video wallpaper renderer used by Noctalia's official mpvpaper plugin.
@@ -419,6 +506,28 @@ in
     systemd.enable = false;
     settings = ./config/noctalia/config.toml;
   };
+
+  # Noctalia stores Settings UI edits separately from the declarative config.
+  # Remove only the old lockscreen widget override once so this new Nix-owned
+  # layout can take effect; preserve all wallpaper, theme and other user state.
+  home.activation.noctalia-lockscreen-layout-v1 = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    state_dir="$HOME/.local/state/noctalia"
+    settings_file="$state_dir/settings.toml"
+    migration_marker="$state_dir/.nix-lockscreen-layout-v1"
+
+    if [ -f "$settings_file" ] && [ ! -e "$migration_marker" ]; then
+      run ${pkgs.coreutils}/bin/cp --preserve=mode,timestamps \
+        "$settings_file" "$settings_file.before-lockscreen-layout-v1"
+      run ${pkgs.gawk}/bin/awk '
+        /^\[lockscreen_widgets\]$/ { skipping = 1; next }
+        skipping && /^\[[^.]+\]$/ { skipping = 0 }
+        !skipping { print }
+      ' "$settings_file" > "$settings_file.nix-lockscreen-layout-v1"
+      run ${pkgs.coreutils}/bin/mv \
+        "$settings_file.nix-lockscreen-layout-v1" "$settings_file"
+      run ${pkgs.coreutils}/bin/touch "$migration_marker"
+    fi
+  '';
 
   # The authorization agent belongs to the graphical user session while the
   # Polkit daemon itself remains enabled system-wide in configuration.nix.

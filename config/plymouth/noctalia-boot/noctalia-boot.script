@@ -212,27 +212,13 @@ Plymouth.SetDisplayPasswordFunction(display_password_callback);
 Plymouth.SetDisplayQuestionFunction(display_question_callback);
 Plymouth.SetDisplayNormalFunction(display_normal_callback);
 
-# Quiet status messages sit near the bottom and disappear cleanly.
-message.sprite = Sprite();
-message.sprite.SetPosition(0, 0, 120);
-message.sprite.SetOpacity(0);
-
-fun display_message_callback (text)
-  {
-    message.image = Image.Text(text, 0.21, 0.32, 0.44, 0.80, "Inter 14", "center");
-    message.sprite.SetImage(message.image);
-    message.sprite.SetPosition(
-      screen.x + Math.Int((screen.width - message.image.GetWidth()) / 2),
-      screen.y + Math.Int(screen.height * 0.93),
-      120
-    );
-    message.sprite.SetOpacity(1);
-  }
-
-fun hide_message_callback (text)
-  {
-    message.sprite.SetOpacity(0);
-  }
+# Keep the splash visually continuous until the greeter takes over.  Plymouth
+# sends internal hand-off messages such as "Terminate Plymouth Boot Screen"
+# through this callback; rendering them creates a text flash between the
+# animation and tuigreet.  Password and question prompts use the dedicated
+# callbacks above and remain available.
+fun display_message_callback (text) { }
+fun hide_message_callback (text) { }
 
 Plymouth.SetDisplayMessageFunction(display_message_callback);
 Plymouth.SetHideMessageFunction(hide_message_callback);

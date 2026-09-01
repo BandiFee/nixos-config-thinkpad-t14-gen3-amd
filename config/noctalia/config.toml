@@ -5,7 +5,7 @@
 ui_scale = 1.0
 
 [shell]
-font_family = "JetBrainsMono Nerd Font"
+font_family = "Inter"
 time_format = "{:%H:%M}"
 date_format = "%A, %Y-%m-%d"
 telemetry_enabled = false
@@ -38,6 +38,32 @@ clipboard_position = "center"
 control_center_placement = "attached"
 wallpaper_placement = "attached"
 session_placement = "attached"
+
+# Keep the full session panel useful while exposing the reference lock screen's
+# suspend, reboot and shutdown controls inside the login card. Noctalia omits
+# the already-active lock action from the lock screen automatically.
+[[shell.session.actions]]
+action = "lock"
+shortcut = "1"
+
+[[shell.session.actions]]
+action = "logout"
+shortcut = "2"
+
+[[shell.session.actions]]
+action = "suspend"
+variant = "outline"
+shortcut = "3"
+
+[[shell.session.actions]]
+action = "reboot"
+variant = "outline"
+shortcut = "4"
+
+[[shell.session.actions]]
+action = "shutdown"
+variant = "destructive"
+shortcut = "5"
 
 [shell.launcher]
 categories = true
@@ -135,9 +161,197 @@ media = false
 enabled = true
 fingerprint = true
 blurred_desktop = false
-blur_intensity = 0.4
-tint_intensity = 0.35
+blur_intensity = 0.10
+tint_intensity = 0.08
 lock_before_suspend = true
+
+# A wallpaper-aware lock screen inspired by the reference layout. Each output
+# gets its own coordinates because the laptop panel and external display use
+# different logical resolutions.
+[lockscreen_widgets]
+enabled = true
+schema_version = 2
+widget_order = [
+  "welcome-edp",
+  "time-edp",
+  "date-edp",
+  "lockscreen-login-box@eDP-1",
+  "welcome-hdmi",
+  "time-hdmi",
+  "date-hdmi",
+  "lockscreen-login-box@HDMI-A-1",
+]
+
+[lockscreen_widgets.grid]
+visible = false
+cell_size = 16
+major_interval = 4
+
+[lockscreen_widgets.widget.welcome-edp]
+type = "label"
+output = "eDP-1"
+cx = 768.0
+cy = 150.0
+placement_width = 1536.0
+placement_height = 960.0
+box_width = 520.0
+box_height = 64.0
+
+[lockscreen_widgets.widget.welcome-edp.settings]
+title = "Welcome, BandiFee"
+description = ""
+color = "#00000099"
+opacity = 1.0
+font_family = "Inter"
+shadow = false
+background = false
+
+[lockscreen_widgets.widget.time-edp]
+type = "clock"
+output = "eDP-1"
+cx = 768.0
+cy = 272.0
+placement_width = 1536.0
+placement_height = 960.0
+box_width = 360.0
+box_height = 112.0
+
+[lockscreen_widgets.widget.time-edp.settings]
+clock_style = "digital"
+format = "{:%H:%M}"
+center_text = true
+color = "#000000ad"
+font_family = "Inter"
+shadow = false
+background = false
+
+[lockscreen_widgets.widget.date-edp]
+type = "clock"
+output = "eDP-1"
+cx = 768.0
+cy = 365.0
+placement_width = 1536.0
+placement_height = 960.0
+box_width = 520.0
+box_height = 34.0
+
+[lockscreen_widgets.widget.date-edp.settings]
+clock_style = "digital"
+format = "{:%A, %d %B}"
+center_text = true
+color = "#00000080"
+font_family = "Inter"
+shadow = false
+background = false
+
+[lockscreen_widgets.widget."lockscreen-login-box@eDP-1"]
+type = "login_box"
+output = "eDP-1"
+cx = 768.0
+cy = 650.0
+placement_width = 1536.0
+placement_height = 960.0
+box_width = 720.0
+box_height = 148.0
+
+[lockscreen_widgets.widget."lockscreen-login-box@eDP-1".settings]
+layout = "regular"
+background_color = "surface"
+background_opacity = 0.36
+background_radius = 20.0
+input_opacity = 0.42
+input_radius = 14.0
+center_password_text = false
+show_login_button = true
+show_caps_lock = true
+show_keyboard_layout = true
+show_unlock_hint = true
+show_session_buttons = true
+show_media = false
+show_weather = false
+
+[lockscreen_widgets.widget.welcome-hdmi]
+type = "label"
+output = "HDMI-A-1"
+cx = 960.0
+cy = 170.0
+placement_width = 1920.0
+placement_height = 1080.0
+box_width = 600.0
+box_height = 70.0
+
+[lockscreen_widgets.widget.welcome-hdmi.settings]
+title = "Welcome, BandiFee"
+description = ""
+color = "#00000099"
+opacity = 1.0
+font_family = "Inter"
+shadow = false
+background = false
+
+[lockscreen_widgets.widget.time-hdmi]
+type = "clock"
+output = "HDMI-A-1"
+cx = 960.0
+cy = 304.0
+placement_width = 1920.0
+placement_height = 1080.0
+box_width = 400.0
+box_height = 120.0
+
+[lockscreen_widgets.widget.time-hdmi.settings]
+clock_style = "digital"
+format = "{:%H:%M}"
+center_text = true
+color = "#000000ad"
+font_family = "Inter"
+shadow = false
+background = false
+
+[lockscreen_widgets.widget.date-hdmi]
+type = "clock"
+output = "HDMI-A-1"
+cx = 960.0
+cy = 405.0
+placement_width = 1920.0
+placement_height = 1080.0
+box_width = 600.0
+box_height = 38.0
+
+[lockscreen_widgets.widget.date-hdmi.settings]
+clock_style = "digital"
+format = "{:%A, %d %B}"
+center_text = true
+color = "#00000080"
+font_family = "Inter"
+shadow = false
+background = false
+
+[lockscreen_widgets.widget."lockscreen-login-box@HDMI-A-1"]
+type = "login_box"
+output = "HDMI-A-1"
+cx = 960.0
+cy = 735.0
+placement_width = 1920.0
+placement_height = 1080.0
+box_width = 780.0
+box_height = 148.0
+
+[lockscreen_widgets.widget."lockscreen-login-box@HDMI-A-1".settings]
+layout = "regular"
+background_color = "surface"
+background_opacity = 0.36
+background_radius = 20.0
+input_opacity = 0.42
+input_radius = 14.0
+center_password_text = false
+show_login_button = true
+show_caps_lock = true
+show_keyboard_layout = true
+show_unlock_hint = true
+show_session_buttons = true
+show_media = false
+show_weather = false
 
 [audio]
 enable_overdrive = false

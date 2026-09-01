@@ -114,6 +114,12 @@ in
         after = [ "user@1000.service" ];
       })
     // {
+      # The text-greeter module defaults to Type=idle, which can defer ExecStart
+      # for systemd's full five-second idle timeout after Plymouth has already
+      # released the display.  Status output is suppressed above, so starting
+      # greetd immediately gives us a clean splash-to-tuigreet hand-off.
+      greetd.serviceConfig.Type = lib.mkForce "simple";
+
       # Plymouth upstream installs this hand-off alongside every shutdown
       # target.  NixOS currently ships the unit but does not enable its stage-2
       # target links, so add them and wait until the shutdown ramfs exists.

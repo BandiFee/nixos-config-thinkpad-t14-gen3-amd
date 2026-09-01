@@ -213,9 +213,16 @@
   # Fingerprint reader
   # ============================================================
 
-  # Also enables fingerprint authentication for PAM services such as
-  # greetd, sudo and polkit while retaining password authentication.
+  # Also enables fingerprint authentication for PAM services such as sudo,
+  # polkit and the lock screen while retaining password authentication.
   services.fprintd.enable = true;
+
+  # The greeter is deliberately excluded. fprintd only reports whether the
+  # finger matches, so a fingerprint login hands pam_gnome_keyring nothing to
+  # decrypt the login keyring with, and it stays locked for the rest of the
+  # session -- every libsecret consumer then prompts for the password on first
+  # use. Collecting the password here unlocks the keyring as part of the login.
+  security.pam.services.greetd.fprintAuth = false;
 
   # ============================================================
   # Bluetooth
@@ -267,7 +274,7 @@
     time_format = "[ %Y-%m-%d || %H:%M ]"
     greeting = """
     [+] Welcome back to NixOS on ThinkPad T14 [+]
-    Sign in with your fingerprint, or enter your password.
+    Enter your password to sign in.
     """
     align_greeting = "center"
 

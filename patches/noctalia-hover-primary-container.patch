@@ -1,0 +1,19 @@
+--- a/src/theme/fixed_palette.cpp
++++ b/src/theme/fixed_palette.cpp
+@@ -399,8 +399,14 @@
+         .onSurfaceVariant = tokenToColor(t, "on_surface_variant"),
+         .outline = tokenToColor(t, "outline_variant"),
+         .shadow = tokenToColor(t, "shadow"),
+-        .hover = tokenToColor(t, "tertiary"),
+-        .onHover = tokenToColor(t, "on_tertiary"),
++        // Upstream aliases hover to tertiary, an off-hue accent picked so one
++        // role can serve every button variant. It reads as an unrelated colour
++        // splash. primary_container keeps the theme's hue while staying a tone
++        // lighter than primary, so hover stays distinct from the pressed and
++        // selected states (both solid primary) and still lifts visibly off a
++        // solid-primary button.
++        .hover = tokenToColor(t, "primary_container"),
++        .onHover = tokenToColor(t, "on_primary_container"),
+     };
+   }
+ 
