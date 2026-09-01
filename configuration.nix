@@ -430,6 +430,9 @@
       libx11
       libice
       libsm
+
+      # libstdc++.so.6, needed by most prebuilt C++ binaries.
+      stdenv.cc.cc.lib
     ];
   };
 
