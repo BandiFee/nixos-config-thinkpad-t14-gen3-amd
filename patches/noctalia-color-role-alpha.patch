@@ -1,0 +1,34 @@
+diff --git a/src/config/config_types.cpp b/src/config/config_types.cpp
+--- a/src/config/config_types.cpp
++++ b/src/config/config_types.cpp
+@@ -45,3 +45,21 @@
+-    if (auto role = colorRoleFromToken(trimmed)) {
+-      return colorSpecFromRole(*role);
++
++    std::string_view roleToken = trimmed;
++    float alpha = 1.0F;
++    if (const auto slash = roleToken.find('/'); slash != std::string_view::npos) {
++      if (roleToken.find('/', slash + 1) != std::string_view::npos) {
++        throw std::runtime_error(colorSpecError(raw, context));
++      }
++      const std::string_view alphaToken = roleToken.substr(slash + 1);
++      roleToken = roleToken.substr(0, slash);
++      char trailing = '\0';
++      if (alphaToken.empty()
++          || std::sscanf(std::string(alphaToken).c_str(), "%f%c", &alpha, &trailing) != 1
++          || alpha < 0.0F
++          || alpha > 1.0F) {
++        throw std::runtime_error(colorSpecError(raw, context));
++      }
++    }
++
++    if (auto role = colorRoleFromToken(roleToken)) {
++      return colorSpecFromRole(*role, alpha);
+     }
+@@ -579,1 +597,5 @@
+-    return std::string(colorRoleToken(*spec.role));
++    std::string result(colorRoleToken(*spec.role));
++    if (spec.alpha < 0.999F) {
++      result += "/" + std::to_string(spec.alpha);
++    }
++    return result;

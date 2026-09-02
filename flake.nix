@@ -62,7 +62,7 @@
               useUserPackages = true;
               backupFileExtension = "hm-backup";
               extraSpecialArgs = { inherit inputs; };
-              users.bandifee = import ./home.nix;
+              users.bandifee = import ./home;
             };
           }
         ];

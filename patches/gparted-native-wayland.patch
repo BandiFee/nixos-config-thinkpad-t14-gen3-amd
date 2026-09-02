@@ -1,0 +1,42 @@
+diff --git a/gparted.in b/gparted.in
+index b310931..8c94eb1 100755
+--- a/gparted.in
++++ b/gparted.in
+@@ -34,6 +34,22 @@ if pidof gpartedbin 1> /dev/null; then
+ 	exit 1
+ fi
+ 
++# pkexec deliberately starts with a restricted environment and does not pass
++# the Wayland socket variables.  Restore only those two values from the
++# authenticated launcher invocation.  Prefer Wayland while retaining X11 as
++# a fallback for sessions without a usable Wayland socket.
++if test "x`id -u`" = "x0" && \
++   test "x${1-}" = "x--nixos-wayland-display"; then
++	if test "$#" -lt 3; then
++		echo "Missing Wayland display arguments." >&2
++		exit 1
++	fi
++	export XDG_RUNTIME_DIR="$2"
++	export WAYLAND_DISPLAY="$3"
++	export GDK_BACKEND="wayland,x11"
++	shift 3
++fi
++
+ #
+ #  Define base command for executing GParted
+ #
+@@ -69,7 +83,13 @@ if test "x`id -u`" != "x0"; then
+ 	#
+ 	#  Run gparted as root.
+ 	#
+-	@gksuprog@ '@bindir@/gparted' "$@"
++	if test -n "$WAYLAND_DISPLAY" && test -n "$XDG_RUNTIME_DIR"; then
++		@gksuprog@ '@bindir@/gparted' \
++			--nixos-wayland-display "$XDG_RUNTIME_DIR" "$WAYLAND_DISPLAY" \
++			"$@"
++	else
++		@gksuprog@ '@bindir@/gparted' "$@"
++	fi
+ 	status=$?
+ 
+ 	#

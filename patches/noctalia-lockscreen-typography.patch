@@ -1,0 +1,42 @@
+diff --git a/src/shell/desktop/widgets/desktop_label_widget.cpp b/src/shell/desktop/widgets/desktop_label_widget.cpp
+--- a/src/shell/desktop/widgets/desktop_label_widget.cpp
++++ b/src/shell/desktop/widgets/desktop_label_widget.cpp
+@@ -33,7 +33,7 @@
+       .out = &m_titleLabel,
+       .text = m_title,
+       .fontSize = titleFontSize(contentScale()),
+-      .fontWeight = FontWeight::Bold,
++      .fontWeight = FontWeight::Medium,
+       .color = m_color,
+       .maxLines = 3,
+       .textAlign = TextAlign::Start,
+diff --git a/src/shell/desktop/widgets/desktop_clock_widget.cpp b/src/shell/desktop/widgets/desktop_clock_widget.cpp
+--- a/src/shell/desktop/widgets/desktop_clock_widget.cpp
++++ b/src/shell/desktop/widgets/desktop_clock_widget.cpp
+@@ -219,7 +219,7 @@
+   auto label = ui::label({
+       .out = &m_label,
+       .fontSize = clockFontSize(contentScale()),
+-      .fontWeight = FontWeight::Bold,
++      .fontWeight = FontWeight::Light,
+       .color = m_color,
+   });
+   m_digitalRoot->addChild(std::move(label));
+@@ -574,7 +574,7 @@
+     for (char digit = '0'; digit <= '9'; ++digit) {
+       const std::string glyph(1, digit);
+       const float advance =
+-          renderer.measureText(glyph, fontSize, FontWeight::Bold, 0.0F, 0, TextAlign::Start, m_fontFamily).width;
++          renderer.measureText(glyph, fontSize, FontWeight::Light, 0.0F, 0, TextAlign::Start, m_fontFamily).width;
+       if (advance > widest) {
+         widest = advance;
+         m_widestDigit = digit;
+@@ -597,7 +597,7 @@
+   m_stableSample = sample;
+
+   const float width =
+-      renderer.measureText(sample, fontSize, FontWeight::Bold, 0.0F, 0, TextAlign::Start, m_fontFamily).width;
++      renderer.measureText(sample, fontSize, FontWeight::Light, 0.0F, 0, TextAlign::Start, m_fontFamily).width;
+   if (std::abs(width - m_stableWidth) > 0.5F) {
+     m_stableWidth = width;
+     m_label->setMinWidth(m_stableWidth);
