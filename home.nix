@@ -263,7 +263,20 @@ in
       pkgs.statix
       pkgs.typora
       pkgs.unzip
-      pkgs.vscode
+      (pkgs.vscode-with-extensions.override {
+        vscode = pkgs.vscode;
+        vscodeExtensions = with pkgs.vscode-extensions; [
+          james-yu.latex-workshop
+        ];
+      })
+      (pkgs.texliveMedium.withPackages (tex: [
+        tex.biblatex
+        tex.biblatex-ieee
+        tex.csquotes
+        tex.placeins
+        tex.titlesec
+      ]))
+      pkgs.biber
       wechat-with-fcitx
       pkgs.wget
       pkgs.wl-clipboard
