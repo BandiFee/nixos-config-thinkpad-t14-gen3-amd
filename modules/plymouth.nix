@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   shutdownTargets = [
@@ -148,6 +148,16 @@ in
           ${pkgs.plymouth}/bin/plymouth show-splash || true
           ${pkgs.systemd}/bin/systemctl log-target null || true
         '';
+      };
+    }
+    // lib.optionalAttrs config.virtualisation.libvirtd.enable {
+      # libvirt ships this unit with StandardOutput=journal+console, so its
+      # start/stop banner bypasses quiet and lands on the console.  It shows up
+      # at shutdown because Plymouth only reacquires the display once the user
+      # session is gone; keep the same text in the journal only.
+      libvirt-guests = {
+        overrideStrategy = "asDropin";
+        serviceConfig.StandardOutput = lib.mkForce "journal";
       };
     };
 }
