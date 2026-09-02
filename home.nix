@@ -251,6 +251,7 @@ in
       pkgs.nix-tree
       pkgs.obs-studio
       pkgs.p7zip
+      pkgs.papers
       pkgs.pavucontrol
       pkgs.playerctl
       qq-xwayland-with-working-source
