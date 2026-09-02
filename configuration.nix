@@ -446,6 +446,9 @@
   # Compatibility
   # ============================================================
 
+  # Resolve hard-coded /bin/* and /usr/bin/* paths from the caller's PATH.
+  services.envfs.enable = true;
+
   # Run prebuilt, dynamically linked Linux binaries such as Conda Python.
   # SkiaSharp's bundled native library also needs fontconfig at runtime.
   programs.nix-ld = {
