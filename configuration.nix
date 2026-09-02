@@ -368,6 +368,9 @@
   # ============================================================
 
   environment.systemPackages = with pkgs; [
+    # Build tools
+    gnumake
+
     # Niri discovers this package and starts XWayland on demand.
     xwayland-satellite
 
