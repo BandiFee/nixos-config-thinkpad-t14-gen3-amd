@@ -15,6 +15,7 @@
         "image/svg+xml" = [ "org.gnome.Loupe.desktop" ];
         "image/tiff" = [ "org.gnome.Loupe.desktop" ];
         "image/webp" = [ "org.gnome.Loupe.desktop" ];
+        "application/pdf" = [ "org.gnome.Papers.desktop" ];
         "text/html" = [ "google-chrome.desktop" ];
         "x-scheme-handler/http" = [ "google-chrome.desktop" ];
         "x-scheme-handler/https" = [ "google-chrome.desktop" ];
