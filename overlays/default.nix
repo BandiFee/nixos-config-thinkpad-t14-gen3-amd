@@ -1,6 +1,26 @@
 # Package customizations applied to the whole system, including Home Manager
 # (the flake sets useGlobalPkgs, so this pkgs set is shared).
 _final: prev: {
+  # xwayland-satellite 0.8.2 regressed override-redirect popups.  Steam's
+  # 2026-09-02 client update exposed it by initially mapping menus at 2x1,
+  # which makes dropdowns disappear almost immediately.  Keep the last
+  # working release until upstream fixes xwayland-satellite#468/#489.
+  xwayland-satellite = prev.xwayland-satellite.overrideAttrs (_old: rec {
+    version = "0.8.1";
+
+    src = prev.fetchFromGitHub {
+      owner = "Supreeeme";
+      repo = "xwayland-satellite";
+      tag = "v${version}";
+      hash = "sha256-BUE41HjLIGPjq3U8VXPjf8asH8GaMI7FYdgrIHKFMXA=";
+    };
+
+    cargoDeps = prev.rustPlatform.fetchCargoVendor {
+      inherit src;
+      hash = "sha256-16L6gsvze+m7XCJlOA1lsPNELE3D364ef2FTdkh0rVY=";
+    };
+  });
+
   # niri-session imports the complete login-shell environment, but its
   # argument-less systemctl call is deprecated. Keep the same semantics by
   # spelling out every variable name, as proposed upstream in niri#3572.
