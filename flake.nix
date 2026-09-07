@@ -4,6 +4,9 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
+    # Track Codex independently so it can move faster than the system package set.
+    codex-nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+
     nixos-hardware = {
       url = "github:NixOS/nixos-hardware";
       inputs.nixpkgs.follows = "nixpkgs";

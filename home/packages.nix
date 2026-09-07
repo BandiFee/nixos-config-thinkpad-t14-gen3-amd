@@ -68,7 +68,10 @@
     pkgs.zip
   ];
 
-  # Prefer the locally patched musicfox even before a system-level
-  # nixos-rebuild updates /etc/profiles/per-user.
-  home.sessionPath = [ "${customPkgs.go-musicfox-latest}/bin" ];
+  # Prefer locally patched packages even before a system-level nixos-rebuild
+  # updates /etc/profiles/per-user.
+  home.sessionPath = [
+    "${customPkgs.codex-with-wayland-clipboard-fallback}/bin"
+    "${customPkgs.go-musicfox-latest}/bin"
+  ];
 }

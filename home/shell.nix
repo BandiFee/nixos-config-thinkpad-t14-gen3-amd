@@ -82,8 +82,11 @@
     interactiveShellInit = lib.mkOrder 1400 ''
       set -g fish_greeting
 
-      # Pick up the patched musicfox immediately, even when this shell inherited
+      # Pick up patched packages immediately, even when this shell inherited
       # session variables from before the latest Home Manager activation.
+      if not contains -- ${customPkgs.codex-with-wayland-clipboard-fallback}/bin $PATH
+        set -gx PATH ${customPkgs.codex-with-wayland-clipboard-fallback}/bin $PATH
+      end
       if not contains -- ${customPkgs.go-musicfox-latest}/bin $PATH
         set -gx PATH ${customPkgs.go-musicfox-latest}/bin $PATH
       end
