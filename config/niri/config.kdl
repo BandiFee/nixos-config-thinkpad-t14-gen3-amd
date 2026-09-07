@@ -231,6 +231,8 @@ binds {
     Mod+BracketRight { consume-or-expel-window-right; }
     // Arrange apps quickly: tab a column, or fine-tune its width/height.
     Mod+G { toggle-column-tabbed-display; }
+    // Temporarily toggle the focused window between its rule opacity and opaque.
+    Mod+T repeat=false { toggle-window-rule-opacity; }
     Mod+Minus { set-column-width "-5%"; }
     Mod+Equal { set-column-width "+5%"; }
     Mod+Shift+Equal { reset-window-height; }
