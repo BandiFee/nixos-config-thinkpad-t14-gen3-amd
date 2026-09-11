@@ -20,4 +20,12 @@
   programs.steam.enable = true;
 
   programs.gamemode.enable = true;
+
+  # Stream the desktop to Moonlight clients. KMS capture supports Niri.
+  services.sunshine = {
+    enable = true;
+    autoStart = false;
+    capSysAdmin = true;
+    openFirewall = true;
+  };
 }
