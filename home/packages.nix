@@ -25,6 +25,7 @@
     pkgs.loupe
     customPkgs.rider-with-avalonia-libs
     pkgs.micromamba
+    pkgs.moonlight-qt
     pkgs.mpv
     # Video wallpaper renderer used by Noctalia's official mpvpaper plugin.
     pkgs.mpvpaper
