@@ -4,6 +4,7 @@
   home.packages = [
     pkgs.brightnessctl
     pkgs.claude-code
+    customPkgs.chatgpt-linux
     customPkgs.codex-with-wayland-clipboard-fallback
     pkgs.curl
     pkgs.deadnix

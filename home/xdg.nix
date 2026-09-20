@@ -19,6 +19,7 @@
         "text/html" = [ "google-chrome.desktop" ];
         "x-scheme-handler/http" = [ "google-chrome.desktop" ];
         "x-scheme-handler/https" = [ "google-chrome.desktop" ];
+        "x-scheme-handler/codex" = [ "chatgpt.desktop" ];
         "x-scheme-handler/terminal" = [ "kitty.desktop" ];
       };
     };

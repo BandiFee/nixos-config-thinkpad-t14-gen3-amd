@@ -1,6 +1,10 @@
 { pkgs, ... }:
 
 {
+  virtualisation.waydroid.enable = true;
+  # The current kernel does not provide legacy ip_tables support.
+  virtualisation.waydroid.package = pkgs.waydroid-nftables;
+
   virtualisation.docker.enable = true;
 
   virtualisation.libvirtd = {

@@ -7,6 +7,8 @@ let
   codexPkgs = inputs.codex-nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system};
 in
 rec {
+  chatgpt-linux = import ./chatgpt.nix { inherit pkgs; };
+
   go-musicfox-latest = pkgs.go-musicfox.overrideAttrs (_oldAttrs: rec {
     version = "5.1.0";
 
