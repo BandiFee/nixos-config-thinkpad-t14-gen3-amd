@@ -16,6 +16,7 @@
     pkgs.gcc
     customPkgs.go-musicfox-latest
     pkgs.google-chrome
+    pkgs.hmcl
     pkgs.hyperfine
     pkgs.inter
     pkgs.jetbrains.pycharm
@@ -36,6 +37,7 @@
     pkgs.nix-output-monitor
     pkgs.nix-tree
     pkgs.obs-studio
+    pkgs.osu-lazer-bin
     pkgs.p7zip
     pkgs.papers
     pkgs.pavucontrol

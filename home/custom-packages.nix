@@ -98,12 +98,22 @@ rec {
         };
       });
 
+  # Pin the official Linux release independently of the system package set.
+  wechat-latest = pkgs.callPackage "${pkgs.path}/pkgs/by-name/we/wechat/linux.nix" {
+    inherit (pkgs.wechat) pname meta;
+    version = "4.1.13.23";
+    src = pkgs.fetchurl {
+      url = "https://dldir1v6.qq.com/weixin/Universal/Linux/WeChatLinux_x86_64.AppImage";
+      hash = "sha256-T1StKQLs1vb9xWgLc1R/gNVCO/RwsBI3pXmi5bPK7us=";
+    };
+  };
+
   # WeChat is an XWayland Qt application and does not use the native Wayland
   # input-method path. Select its bundled Fcitx platform input context without
   # forcing the same choice on native Wayland Qt applications.
   wechat-with-fcitx = pkgs.symlinkJoin {
     name = "wechat-with-fcitx";
-    paths = [ pkgs.wechat ];
+    paths = [ wechat-latest ];
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram $out/bin/wechat --set QT_IM_MODULE fcitx

@@ -1,6 +1,15 @@
 # Package customizations applied to the whole system, including Home Manager
 # (the flake sets useGlobalPkgs, so this pkgs set is shared).
 _final: prev: {
+  # Update Chrome independently of the pinned system package set.
+  google-chrome = prev.google-chrome.overrideAttrs (_old: rec {
+    version = "154.0.8037.57";
+    src = prev.fetchurl {
+      url = "https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${version}-1_amd64.deb";
+      sha256 = "66c0645f6a19871bab2844b8537c11a0db2e7d3bea8ef85a1c7cb52a54e65a3e";
+    };
+  });
+
   # xwayland-satellite 0.8.2 regressed override-redirect popups.  Steam's
   # 2026-09-02 client update exposed it by initially mapping menus at 2x1,
   # which makes dropdowns disappear almost immediately.  Keep the last
