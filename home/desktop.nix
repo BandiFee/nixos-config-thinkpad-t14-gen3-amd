@@ -8,13 +8,32 @@
 {
   programs.firefox.enable = true;
 
+  home.packages = [ customPkgs.librepods-noctalia ];
+  systemd.user.services.librepods = {
+    Unit = {
+      Description = "AirPods integration for Noctalia";
+      After = [ "graphical-session.target" ];
+      PartOf = [ "graphical-session.target" ];
+    };
+    Service = {
+      ExecStart = "${customPkgs.librepods-noctalia}/bin/librepods --headless";
+      Environment = [ "QT_LOGGING_RULES=openpods.debug=false" ];
+      Restart = "on-failure";
+      RestartSec = 5;
+      UMask = "0077";
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
+  };
+
   # Niri starts Noctalia with the graphical session. The upstream module
   # installs the cached package and validates this TOML during the build.
   programs.noctalia = {
     enable = true;
     package = customPkgs.noctalia-with-mpris-lyrics;
     systemd.enable = false;
-    settings = ../config/noctalia/config.toml;
+    settings = pkgs.replaceVars ../config/noctalia/config.toml {
+      librepods_ctl = "${customPkgs.librepods-noctalia}/bin/librepods-ctl";
+    };
   };
 
   # Noctalia stores Settings UI edits separately from the declarative config.

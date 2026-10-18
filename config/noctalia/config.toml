@@ -91,8 +91,11 @@ edge_smoothness = 0.3
 # The official video-wallpaper plugin integrates mpvpaper with Noctalia's
 # wallpaper surface, picker, persistence and wallpaper-derived theme colors.
 [plugins]
-enabled = ["noctalia/mpvpaper"]
+enabled = ["noctalia/mpvpaper", "harveywuk/airpods"]
 auto_update = "official"
+
+[plugin_settings."harveywuk/airpods"]
+ctl_path = "@librepods_ctl@"
 
 [plugin_settings."noctalia/mpvpaper"]
 video_directory = "~/Videos/Wallpapers"
@@ -394,7 +397,7 @@ capsule_thickness = 0.96
 panel_overlap = 12
 start = ["workspaces"]
 center = ["clock"]
-end = ["media", "tray", "battery", "network", "control-center"]
+end = ["media", "harveywuk/airpods:airpods", "tray", "battery", "network", "control-center"]
 
 [dock]
 enabled = false

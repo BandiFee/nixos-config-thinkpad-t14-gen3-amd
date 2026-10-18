@@ -7,6 +7,23 @@ let
   codexPkgs = inputs.codex-nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system};
 in
 rec {
+  # Noctalia's AirPods plugin needs this fork's status file and control verbs.
+  librepods-noctalia = pkgs.librepods.overrideAttrs (_oldAttrs: {
+    version = "0.2.5-unstable-2026-10-08";
+    src = pkgs.fetchFromGitHub {
+      owner = "harveywuk";
+      repo = "librepods";
+      rev = "4ed49df0b301ac3e6fba9c81dfbbb6726cc52201";
+      hash = "sha256-Ygoqz5lnGMwZkys+Q4c4pyAUI0llvpGZ/ij5E91CkAg=";
+    };
+    sourceRoot = "source";
+    cmakeFlags = [ "-DBUILD_TESTING=OFF" ];
+    # Home Manager owns the service, with an immutable executable path.
+    postInstall = ''
+      rm -f $out/share/systemd/user/librepods.service
+    '';
+  });
+
   chatgpt-linux = import ./chatgpt.nix { inherit pkgs; };
 
   go-musicfox-latest = pkgs.go-musicfox.overrideAttrs (_oldAttrs: rec {
