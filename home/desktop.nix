@@ -8,6 +8,10 @@
 {
   programs.firefox.enable = true;
 
+  # Noctalia recolors status icons as alpha masks. Blueman's symbolic assets
+  # preserve the Bluetooth glyph instead of flattening its colored background.
+  dconf.settings."org/blueman/general".symbolic-status-icons = true;
+
   home.packages = [ customPkgs.librepods-noctalia ];
 
   # Local plugins take precedence over the downloaded community copy.
