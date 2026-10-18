@@ -3,7 +3,7 @@
 {
   home.packages = [
     pkgs.brightnessctl
-    pkgs.claude-code
+    customPkgs.claude-code-latest
     customPkgs.chatgpt-linux
     customPkgs.codex-with-wayland-clipboard-fallback
     pkgs.curl
@@ -19,8 +19,8 @@
     pkgs.hmcl
     pkgs.hyperfine
     pkgs.inter
-    pkgs.jetbrains.pycharm
-    pkgs.jetbrains.rust-rover
+    customPkgs.pycharm-latest
+    customPkgs.rust-rover-latest
     pkgs.jq
     pkgs.just
     pkgs.libreoffice

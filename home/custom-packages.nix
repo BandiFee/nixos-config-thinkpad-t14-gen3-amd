@@ -7,6 +7,40 @@ let
   codexPkgs = inputs.codex-nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system};
 in
 rec {
+  claude-code-latest = pkgs.claude-code.override {
+    manifest = {
+      version = "2.1.302";
+      platforms.linux-x64.checksum = "60d7eb7f12fbb28a52533fe8be5884097403562aa02dc73991a021c7067e29a5";
+    };
+  };
+
+  rider-latest = pkgs.jetbrains.rider.overrideAttrs (_old: {
+    version = "2026.2.3.1";
+    src = pkgs.fetchurl {
+      url = "https://download.jetbrains.com/rider/JetBrains.Rider-2026.2.3.1.tar.gz";
+      sha256 = "fa4b09a5f7cf4b6635b093adc7313991778a8dc74f25614a2b8976b04dee5d4e";
+    };
+    buildNumber = "262.10968.170";
+  });
+
+  pycharm-latest = pkgs.jetbrains.pycharm.overrideAttrs (_old: {
+    version = "2026.2.3";
+    src = pkgs.fetchurl {
+      url = "https://download.jetbrains.com/python/pycharm-2026.2.3.tar.gz";
+      sha256 = "e8e4fbe4dab44390d09f681e059a316e692cabd24b2e11ce98ff76c8120fa313";
+    };
+    buildNumber = "262.10968.92";
+  });
+
+  rust-rover-latest = pkgs.jetbrains.rust-rover.overrideAttrs (_old: {
+    version = "2026.2.4";
+    src = pkgs.fetchurl {
+      url = "https://download.jetbrains.com/rustrover/RustRover-2026.2.4.tar.gz";
+      sha256 = "4036a06f18fd03da8809cb11b56d47ffa10e62ad12a9018682010f503c5513f6";
+    };
+    buildNumber = "262.10968.211";
+  });
+
   # Noctalia's AirPods plugin needs this fork's status file and control verbs.
   librepods-noctalia = pkgs.librepods.overrideAttrs (_oldAttrs: {
     version = "0.2.5-unstable-2026-10-08";
@@ -66,20 +100,20 @@ rec {
       };
     }).overrideAttrs
       (oldAttrs: rec {
-        version = "0.153.4";
+        version = "0.163.0";
 
         src = codexPkgs.fetchFromGitHub {
           owner = "openai";
           repo = "codex";
           tag = "rust-v${version}";
-          hash = "sha256-lHiDj5SodaM3mh8goMm6esfejeAT+Y3JJWrRnyj6sJo=";
+          hash = "sha256-Fa9dfiGJy+uqSF4A0EM6AQQhhjQdu+jfhKzqXid9PNA=";
         };
 
         cargoDeps = codexPkgs.rustPlatform.fetchCargoVendor {
           inherit src version;
           pname = "codex";
           sourceRoot = "${src.name}/codex-rs";
-          hash = "sha256-GG6kOXmCdq+bZLU2ul0DIVL8lDuweayvZvXn6+bcUZw=";
+          hash = "sha256-TG1fDHQCRDDbk+G0NS/9NTouJupq0Zisi4LIJY4SgYw=";
         };
 
         env = (oldAttrs.env or { }) // {
@@ -107,20 +141,20 @@ rec {
       commandLineArgs = "--ozone-platform=x11";
     }).overrideAttrs
       (_oldAttrs: {
-        version = "3.2.32-2026-07-30";
+        version = "3.2.32-2026-08-12";
         src = pkgs.fetchurl {
-          url = "https://qqdl.gtimg.cn/qqfile/QQNT/9.9.33/release/c97651b2/QQ_3.2.32_260730_amd64_01.deb";
-          hash = "sha256-ga4rhULvUxH8cuz1PJpSOSPINFacew2lLgv0Nguctfk=";
+          url = "https://qqdl.gtimg.cn/qqfile/QQNT/9.9.33/release/3f89efc5/QQ_3.2.32_260812_amd64_01.deb";
+          hash = "sha256-0IXdiTlyJQYeufGUMI9ogSmBjtRFd36XpKChbhPXsOg=";
         };
       });
 
   # Pin the official Linux release independently of the system package set.
   wechat-latest = pkgs.callPackage "${pkgs.path}/pkgs/by-name/we/wechat/linux.nix" {
     inherit (pkgs.wechat) pname meta;
-    version = "4.1.13.23";
+    version = "4.1.13.26";
     src = pkgs.fetchurl {
       url = "https://dldir1v6.qq.com/weixin/Universal/Linux/WeChatLinux_x86_64.AppImage";
-      hash = "sha256-T1StKQLs1vb9xWgLc1R/gNVCO/RwsBI3pXmi5bPK7us=";
+      hash = "sha256-RSYYC8qYASh5FZmvEi/0eVACpXFaUQ9qZUgOK+aHQkQ=";
     };
   };
 
@@ -152,7 +186,7 @@ rec {
   # bundled native renderer without setting LD_LIBRARY_PATH globally.
   rider-with-avalonia-libs = pkgs.symlinkJoin {
     name = "rider-with-avalonia-libs";
-    paths = [ pkgs.jetbrains.rider ];
+    paths = [ rider-latest ];
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram $out/bin/rider \

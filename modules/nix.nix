@@ -17,7 +17,11 @@
     options = "--delete-older-than 30d";
   };
 
-  nixpkgs.config.allowUnfree = true;
+  nixpkgs.config = {
+    allowUnfree = true;
+    # SPlayer 3.1.1 is the upstream's final release and still bundles Electron 41.
+    permittedInsecurePackages = [ "electron-41.10.7" ];
+  };
 
   nixpkgs.overlays = [ (import ../overlays) ];
 }

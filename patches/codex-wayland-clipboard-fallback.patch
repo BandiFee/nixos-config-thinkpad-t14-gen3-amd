@@ -1,6 +1,6 @@
 --- a/tui/src/clipboard_paste.rs
 +++ b/tui/src/clipboard_paste.rs
-@@ -1,5 +1,7 @@
+@@ -5,5 +5,7 @@
  use std::path::Path;
  use std::path::PathBuf;
 +#[cfg(target_os = "linux")]
