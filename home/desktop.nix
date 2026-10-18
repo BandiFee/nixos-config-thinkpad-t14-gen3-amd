@@ -9,6 +9,10 @@
   programs.firefox.enable = true;
 
   home.packages = [ customPkgs.librepods-noctalia ];
+
+  # Local plugins take precedence over the downloaded community copy.
+  # Keep the AirPods panel readable with both light and dark glass themes.
+  xdg.dataFile."noctalia/plugins/airpods".source = ../config/noctalia/plugins/airpods;
   systemd.user.services.librepods = {
     Unit = {
       Description = "AirPods integration for Noctalia";
