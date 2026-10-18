@@ -92,7 +92,7 @@ rec {
   # Codex's arboard path can miss image files copied by Nautilus on Wayland.
   # Fall back to wl-paste for image data and the two file-list MIME types
   # Nautilus commonly publishes, while leaving the native path preferred.
-  codex-with-wayland-clipboard-fallback =
+  codex-clipboard-patched =
     (codexPkgs.codex.override {
       librusty_v8 = codexPkgs.fetchurl {
         url = "https://github.com/openai/codex/releases/download/rusty-v8-v150.4.0/librusty_v8_ptrcomp_sandbox_release_x86_64-unknown-linux-gnu.a.gz";
@@ -131,6 +131,27 @@ rec {
             --replace-fail '@wl-paste@' '${codexPkgs.wl-clipboard}/bin/wl-paste'
         '';
       });
+
+  # The shared app-server daemon only starts from an official package layout:
+  # the real executable at bin/codex beside codex-package.json, with rg and
+  # bwrap copied in (links leaving the package are rejected). Codex adds
+  # codex-path to PATH itself, so the nixpkgs PATH wrapper is not needed.
+  codex-with-wayland-clipboard-fallback =
+    codexPkgs.runCommand "codex-packaged-${codex-clipboard-patched.version}"
+      {
+        inherit (codex-clipboard-patched) version meta;
+      }
+      ''
+        mkdir -p $out/bin $out/codex-path $out/codex-resources
+        cp ${codex-clipboard-patched}/bin/.codex-wrapped $out/bin/codex
+        cp ${codex-clipboard-patched}/bin/codex-code-mode-host $out/bin/
+        cp ${codexPkgs.ripgrep}/bin/rg $out/codex-path/rg
+        cp ${codexPkgs.bubblewrap}/bin/bwrap $out/codex-resources/bwrap
+        cp -r ${codex-clipboard-patched}/share $out/share
+        cat > $out/codex-package.json <<EOF
+        {"layoutVersion":1,"version":"${codex-clipboard-patched.version}","target":"x86_64-unknown-linux-gnu","entrypoint":"bin/codex"}
+        EOF
+      '';
 
   # The QQ URL in the pinned nixpkgs revision was removed from Tencent's CDN.
   # Keep using the nixpkgs wrapper, but point it at a newer official package.
