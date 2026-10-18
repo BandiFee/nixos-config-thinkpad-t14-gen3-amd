@@ -1,14 +1,29 @@
-diff --git a/src/dbus/mpris/mpris_service.cpp b/src/dbus/mpris/mpris_service.cpp
-index 6e44f35..66efbb4 100644
 --- a/src/dbus/mpris/mpris_service.cpp
 +++ b/src/dbus/mpris/mpris_service.cpp
-@@ -11,0 +12 @@
+@@ -9,15 +9,18 @@
+ #include "util/string_utils.h"
+
+ #include <algorithm>
 +#include <charconv>
-@@ -14,0 +16 @@
+ #include <chrono>
+ #include <cmath>
+ #include <format>
 +#include <iterator>
-@@ -20,0 +23 @@
+ #include <limits>
+ #include <map>
+ #include <sdbus-c++/IObject.h>
+ #include <sdbus-c++/IProxy.h>
+ #include <sdbus-c++/Types.h>
+ #include <string_view>
 +#include <system_error>
-@@ -37,0 +41,129 @@ namespace {
+ #include <tuple>
+ #include <unordered_set>
+
+@@ -34,6 +37,135 @@
+ }
+
+ namespace {
++
 +  struct TimedLyricLine {
 +    std::int64_t positionUs = 0;
 +    std::string text;
@@ -137,10 +152,23 @@ index 6e44f35..66efbb4 100644
 +    parsed.lines = std::move(merged);
 +    return parsed;
 +  }
-+
-@@ -297,0 +430 @@ namespace {
+
+   constexpr auto kDbusInterface = "org.freedesktop.DBus";
+   constexpr auto kPropertiesInterface = "org.freedesktop.DBus.Properties";
+@@ -287,6 +419,7 @@
+     player["title"] = sdbus::Variant(info.title);
+     player["artists"] = sdbus::Variant(info.artists);
+     player["album"] = sdbus::Variant(info.album);
 +    player["lyrics"] = sdbus::Variant(info.lyrics);
-@@ -356,0 +490,26 @@ namespace {
+     player["source_url"] = sdbus::Variant(info.sourceUrl);
+     player["art_url"] = sdbus::Variant(info.artUrl);
+     player["loop_status"] = sdbus::Variant(info.loopStatus);
+@@ -352,6 +485,32 @@
+     return std::format("{}\n{}", info.trackId, canonicalSourceUrl);
+   }
+   return std::format("{}\n{}\n{}\n{}", info.trackId, info.title, joinedArtists(info.artists), info.album);
++}
++
 +MprisLyricWindow lyricWindowAt(const MprisPlayerInfo& player, std::int64_t positionUs) {
 +  static thread_local ParsedLyrics cache;
 +  if (cache.source != player.lyrics) {
@@ -165,41 +193,84 @@ index 6e44f35..66efbb4 100644
 +    window.next = currentEnd->text;
 +  }
 +  return window;
-+}
-+
-@@ -1980,0 +2140,4 @@ void MprisService::applyPlayerSnapshot(
+ }
+
+ MprisService::MprisService(SessionBus& bus)
+@@ -1992,6 +2151,10 @@
+     const bool logicalTrackChanged = !newSignature.empty() && previousSignature != newSignature;
+     const bool playbackStatusChanged = previous_info.playbackStatus != merged.playbackStatus;
+
 +    if (!logicalTrackChanged && merged.lyrics.empty() && !previous_info.lyrics.empty()) {
 +      merged.lyrics = previous_info.lyrics;
 +    }
 +
-@@ -2080,0 +2244 @@ void MprisService::applyPlayerSnapshot(
+     if (!logicalTrackChanged
+         && merged.lengthUs == 0
+         && previous_info.lengthUs > 0
+@@ -2092,6 +2255,7 @@
+         || previous_info.trackId != merged.trackId
+         || previous_info.lengthUs != merged.lengthUs;
+     const bool significantChanged = trackChanged
 +        || previous_info.lyrics != merged.lyrics
-@@ -2754,0 +2919 @@ MprisPlayerInfo MprisService::readPlayerInfoFromProperties(
+         || previous_info.identity != merged.identity
+         || previous_info.playbackStatus != merged.playbackStatus
+         || previous_info.volume != merged.volume
+@@ -2771,6 +2935,7 @@
+       .title = get_string_from_variant(metadata, "xesam:title"),
+       .artists = std::move(artists),
+       .album = get_string_from_variant(metadata, "xesam:album"),
 +      .lyrics = get_string_from_variant(metadata, "xesam:asText"),
-diff --git a/src/dbus/mpris/mpris_service.h b/src/dbus/mpris/mpris_service.h
-index 9acf99a..327f00e 100644
+       .sourceUrl = get_string_from_variant(metadata, "xesam:url"),
+       .artUrl = get_string_from_variant(metadata, "mpris:artUrl"),
+       .loopStatus = get_string_from_props_or(playerProps, "LoopStatus", "None"),
 --- a/src/dbus/mpris/mpris_service.h
 +++ b/src/dbus/mpris/mpris_service.h
-@@ -36,0 +37 @@ struct MprisPlayerInfo {
+@@ -34,6 +34,7 @@
+   std::string title;
+   std::vector<std::string> artists;
+   std::string album;
 +  std::string lyrics;
-@@ -53,0 +55,6 @@ struct MprisPlayerInfo {
+   std::string sourceUrl;
+   std::string artUrl;
+   std::string loopStatus{"None"};
+@@ -51,6 +52,12 @@
+   bool operator==(const MprisPlayerInfo&) const = default;
+ };
+
 +struct MprisLyricWindow {
 +  std::string previous;
 +  std::string current;
 +  std::string next;
 +};
 +
-@@ -56,0 +64,3 @@ struct MprisPlayerInfo {
+ // Joins artist names with ", ".
+ [[nodiscard]] std::string joinedArtists(const std::vector<std::string>& artists);
+
+@@ -58,6 +65,8 @@
+ // player seeks or buffers. Prefers the track id plus a source URL normalized against playback
+ // position parameters, and falls back to the metadata strings when there is no source URL.
+ [[nodiscard]] std::string logicalTrackSignature(const MprisPlayerInfo& info);
 +// Parses synced LRC from xesam:asText and returns the lines surrounding positionUs.
 +[[nodiscard]] MprisLyricWindow lyricWindowAt(const MprisPlayerInfo& player, std::int64_t positionUs);
-+
-diff --git a/src/shell/bar/bar.cpp b/src/shell/bar/bar.cpp
-index 5907ccb..f5c4396 100644
+
+ class MprisService {
+ public:
 --- a/src/shell/bar/bar.cpp
 +++ b/src/shell/bar/bar.cpp
-@@ -19,0 +20 @@
+@@ -17,6 +17,7 @@
+ #include "shell/bar/bar_reserved_zone.h"
+ #include "shell/bar/widget.h"
+ #include "shell/bar/widget_gesture_defaults.h"
 +#include "shell/bar/widgets/media_widget.h"
-@@ -1246,0 +1248,42 @@ namespace {
+ #include "shell/bar/widgets/plugin_widget.h"
+ #include "shell/bar/widgets/taskbar_widget.h"
+ #include "shell/bar/widgets/tray_widget.h"
+@@ -1242,6 +1243,48 @@
+       configureSlot(instance.startSlot, contentMainStart, startSlotMain);
+       configureSlot(instance.centerSlot, contentMainStart + startSlotMain, 0.0F);
+       configureSlot(instance.endSlot, contentMainEnd - endSlotMain, endSlotMain);
++    }
++
 +    // Media text is elastic: let it consume the lane space left after every
 +    // sibling has kept its natural size. A second layout pass gives its label
 +    // the real width budget, so long titles/lyrics scroll inside the widget
@@ -240,52 +311,91 @@ index 5907ccb..f5c4396 100644
 +      fitMediaToLane(
 +          instance.endSection, instance.endWidgets, instance.endCapsuleRuns, endSlotMain, FlexJustify::End
 +      );
-+    }
-+
-diff --git a/src/shell/bar/widgets/media_widget.cpp b/src/shell/bar/widgets/media_widget.cpp
-index adb360a..fb311ae 100644
+     }
+
+     if (isVertical) {
 --- a/src/shell/bar/widgets/media_widget.cpp
 +++ b/src/shell/bar/widgets/media_widget.cpp
-@@ -14,0 +15 @@
-+#include <chrono>
-@@ -32,0 +34,2 @@ MediaWidget::MediaWidget(MprisService* mpris, HttpClient* httpClient, wl_output*
-+void MediaWidget::setAvailableLength(float maxLength) noexcept { m_availableLength = std::max(0.0F, maxLength); }
+@@ -32,6 +32,8 @@
+       m_hideWhenIdle(options.hideWhenIdle), m_rotateAlbumArt(options.rotateAlbumArt),
+       m_albumArtOnly(options.albumArtOnly), m_hideAlbumArt(options.hideAlbumArt), m_hideArtist(options.hideArtist),
+       m_artistFirst(options.artistFirst), m_showProgress(options.showProgress) {}
 +
-@@ -90 +93,3 @@ void MediaWidget::doLayout(Renderer& renderer, float containerWidth, float conta
++void MediaWidget::setAvailableLength(float maxLength) noexcept { m_availableLength = std::max(0.0F, maxLength); }
+
+ void MediaWidget::create() {
+   auto area = ui::inputArea({});
+@@ -110,7 +112,9 @@
+   syncState(renderer, active);
+
+   const bool artOnly = m_isVertical || m_albumArtOnly;
 -  const float maxLength = std::max(0.0F, m_maxWidth * m_contentScale);
 +  const float configuredMaxLength = std::max(0.0F, m_maxWidth * m_contentScale);
 +  const float maxLength = m_availableLength >= 0.0F ? std::min(configuredMaxLength, m_availableLength)
 +                                                     : configuredMaxLength;
-@@ -203,0 +209,6 @@ void MediaWidget::syncState(Renderer& renderer) {
+   const float minLength = std::clamp(m_minWidth * m_contentScale, 0.0F, maxLength);
+   const bool showProgressFill = progressFillEligible(active);
+
+@@ -302,6 +306,12 @@
+     return;
+   }
+
 +  const bool lyricsPlaying = active.has_value() && active->playbackStatus == "Playing" && !active->lyrics.empty();
 +  if (lyricsPlaying && !m_lyricTimer.active()) {
 +    m_lyricTimer.startRepeating(std::chrono::milliseconds(500), [this]() { requestUpdate(); });
 +  } else if (!lyricsPlaying) {
 +    m_lyricTimer.stop();
 +  }
-@@ -288,0 +300,5 @@ std::string MediaWidget::buildDisplayText(const MprisPlayerInfo& player, bool hi
+   const bool playing = active.has_value() && active->playbackStatus == "Playing";
+   const bool showWidget = active.has_value() ? (!m_hideWhenIdle || playing) : !m_hideWhenNoMedia;
+   syncWidgetVisibility(showWidget);
+@@ -399,6 +409,11 @@
+ }
+
+ std::string MediaWidget::buildDisplayText(const MprisPlayerInfo& player, bool hideArtist, bool artistFirst) {
 +  const auto lyric = lyricWindowAt(player, player.positionUs);
 +  if (!lyric.current.empty()) {
 +    return lyric.current;
 +  }
 +
-diff --git a/src/shell/bar/widgets/media_widget.h b/src/shell/bar/widgets/media_widget.h
-index 2f81a9c..7793435 100644
+   const std::string artists = hideArtist ? std::string() : joinArtists(player.artists);
+   if (!player.title.empty() && !artists.empty()) {
+     if (artistFirst) {
 --- a/src/shell/bar/widgets/media_widget.h
 +++ b/src/shell/bar/widgets/media_widget.h
-@@ -2,0 +3 @@
-+#include "core/timer_manager.h"
-@@ -42,0 +44 @@ public:
+@@ -48,6 +48,7 @@
+   void create() override;
+   [[nodiscard]] bool needsFrameTick() const override;
+   void onFrameTick(float deltaMs) override;
 +  void setAvailableLength(float maxLength) noexcept;
-@@ -56,0 +59 @@ private:
+
+ private:
+   void doLayout(Renderer& renderer, float containerWidth, float containerHeight) override;
+@@ -67,6 +68,7 @@
+   float m_maxWidth = 220.0F;
+   float m_minWidth = 80.0F;
+   float m_artSize = 16.0F;
 +  float m_availableLength = -1.0F;
-@@ -72,0 +76 @@ private:
+   MediaTitleScrollMode m_titleScrollMode = MediaTitleScrollMode::None;
+   bool m_hideWhenNoMedia = false;
+   bool m_hideWhenIdle = false;
+@@ -92,4 +94,5 @@
+   std::unordered_set<std::string> m_pendingArtDownloads;
+   std::shared_ptr<void> m_aliveGuard = std::make_shared<int>(0);
+   Timer m_progressTimer;
 +  Timer m_lyricTimer;
-diff --git a/src/shell/control_center/tabs/media_tab.cpp b/src/shell/control_center/tabs/media_tab.cpp
-index 7709a78..8b46df6 100644
+ };
 --- a/src/shell/control_center/tabs/media_tab.cpp
 +++ b/src/shell/control_center/tabs/media_tab.cpp
-@@ -275,0 +276,31 @@ std::unique_ptr<Flex> MediaTab::create() {
+@@ -268,6 +268,37 @@
+               .text = "",
+               .fontSize = Style::fontSizeCaption * scale,
+               .color = colorSpecFromRole(ColorRole::Secondary),
++              .visible = false,
++          })
++      )
++  );
++
 +  mediaStack->addChild(
 +      ui::column(
 +          {.align = FlexAlign::Stretch, .gap = Style::spaceXs * scale},
@@ -312,22 +422,35 @@ index 7709a78..8b46df6 100644
 +              .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
 +              .maxLines = 1,
 +              .textAlign = TextAlign::Center,
-+              .visible = false,
-+          })
-+      )
-+  );
-+
-@@ -552,0 +584,5 @@ void MediaTab::doLayout(Renderer& renderer, float contentWidth, float bodyHeight
+               .visible = false,
+           })
+       )
+@@ -550,6 +581,11 @@
+   if (m_trackAlbum != nullptr) {
+     m_trackAlbum->setMaxWidth(mediaWidth);
+   }
 +  for (auto* lyricLabel : {m_lyricPrevious, m_lyricCurrent, m_lyricNext}) {
 +    if (lyricLabel != nullptr) {
 +      lyricLabel->setMaxWidth(mediaWidth);
 +    }
 +  }
-@@ -691,0 +728,3 @@ void MediaTab::onClose() {
+   if (m_progressSlider != nullptr) {
+     m_progressSlider->setSize(mediaWidth, 0.0F);
+   }
+@@ -689,6 +725,9 @@
+   m_trackTitle = nullptr;
+   m_trackArtist = nullptr;
+   m_trackAlbum = nullptr;
 +  m_lyricPrevious = nullptr;
 +  m_lyricCurrent = nullptr;
 +  m_lyricNext = nullptr;
-@@ -888,0 +928,11 @@ void MediaTab::refresh(Renderer& renderer) {
+   m_progressSlider = nullptr;
+   m_prevButton = nullptr;
+   m_playPauseButton = nullptr;
+@@ -886,6 +925,17 @@
+       m_trackAlbum->setText(player.album);
+       m_trackAlbum->setVisible(!player.album.empty());
+     }
 +    const auto lyrics = lyricWindowAt(player, displayPositionUs);
 +    const auto syncLyricLabel = [](Label* label, const std::string& text) {
 +      if (label == nullptr) {
@@ -339,18 +462,31 @@ index 7709a78..8b46df6 100644
 +    syncLyricLabel(m_lyricPrevious, lyrics.previous);
 +    syncLyricLabel(m_lyricCurrent, lyrics.current);
 +    syncLyricLabel(m_lyricNext, lyrics.next);
-@@ -981,0 +1032,6 @@ void MediaTab::refresh(Renderer& renderer) {
+
+     const std::string resolvedArtUrl = effectiveArtUrl(player);
+     const std::string artPath = resolveArtworkSource(
+@@ -979,6 +1029,12 @@
+     m_trackAlbum->setText("");
+     m_trackAlbum->setVisible(false);
+   }
 +  for (auto* lyricLabel : {m_lyricPrevious, m_lyricCurrent, m_lyricNext}) {
 +    if (lyricLabel != nullptr) {
 +      lyricLabel->setText("");
 +      lyricLabel->setVisible(false);
 +    }
 +  }
-diff --git a/src/shell/control_center/tabs/media_tab.h b/src/shell/control_center/tabs/media_tab.h
-index 981472e..06a64dd 100644
+   clearArt(renderer);
+   m_lastArtPath.clear();
+   m_syncingProgress = true;
 --- a/src/shell/control_center/tabs/media_tab.h
 +++ b/src/shell/control_center/tabs/media_tab.h
-@@ -78,0 +79,3 @@ private:
+@@ -76,6 +76,9 @@
+   Label* m_trackTitle = nullptr;
+   Label* m_trackArtist = nullptr;
+   Label* m_trackAlbum = nullptr;
 +  Label* m_lyricPrevious = nullptr;
 +  Label* m_lyricCurrent = nullptr;
 +  Label* m_lyricNext = nullptr;
+   Slider* m_progressSlider = nullptr;
+   Button* m_prevButton = nullptr;
+   Button* m_playPauseButton = nullptr;
