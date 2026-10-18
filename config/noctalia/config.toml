@@ -83,6 +83,7 @@ global = false
 
 [wallpaper]
 enabled = true
+directory = "~/Pictures/Wallpapers"
 fill_mode = "crop"
 transition = ["fade", "wipe", "zoom"]
 transition_duration = 900
