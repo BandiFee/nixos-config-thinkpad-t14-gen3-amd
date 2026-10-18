@@ -5,6 +5,7 @@
 ui_scale = 1.0
 
 [shell]
+avatar_path = "/home/bandifee/Pictures/avatar.jpg"
 font_family = "Inter"
 time_format = "{:%H:%M}"
 date_format = "%A, %Y-%m-%d"
