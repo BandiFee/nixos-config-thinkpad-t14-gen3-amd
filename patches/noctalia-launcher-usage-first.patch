@@ -1,0 +1,30 @@
+diff --git a/src/shell/launcher/launcher_panel.cpp b/src/shell/launcher/launcher_panel.cpp
+--- a/src/shell/launcher/launcher_panel.cpp
++++ b/src/shell/launcher/launcher_panel.cpp
+@@ -2630,6 +2630,26 @@ void LauncherPanel::onInputChanged(const std::string& text) {
+     }
+   }
+ 
++  // Rank matching applications by launch count, retaining lexical order for
++  // ties. Only replace application slots so other providers keep their rank.
++  if (sortByUsage && m_scopedProviderId.empty()) {
++    std::vector<std::size_t> appSlots;
++    std::vector<LauncherResult> apps;
++    for (std::size_t i = 0; i < m_allResults.size(); ++i) {
++      if (m_allResults[i].providerId == kApplicationsProviderId) {
++        appSlots.push_back(i);
++        apps.push_back(std::move(m_allResults[i]));
++      }
++    }
++    std::ranges::stable_sort(apps, [&](const LauncherResult& a, const LauncherResult& b) {
++      return m_usageTracker.getCount(kApplicationsProviderId, a.id)
++          > m_usageTracker.getCount(kApplicationsProviderId, b.id);
++    });
++    for (std::size_t i = 0; i < appSlots.size(); ++i) {
++      m_allResults[appSlots[i]] = std::move(apps[i]);
++    }
++  }
++
+   if (m_browserMode) {
+     const auto applications =
+         std::ranges::find(m_providers, kApplicationsProviderId, [](const auto& provider) { return provider->id(); });
